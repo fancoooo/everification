@@ -1,0 +1,16 @@
+package fpt.signature.sign.object;
+
+public enum EnhancedKeyUsage {
+    ANY_PURPOSE,
+    SERVER_AUTHENTICATION,
+    CLIENT_AUTHENTICATION,
+    CODE_SIGNING,
+    SECURE_EMAIL,
+    TIME_STAMPING,
+    OCSP_SIGNING,
+    SMART_CARD_LOGON,
+    DOCUMENT_SIGNING,
+    ENCRYPTING_FILE_SYSTEM,
+    FILE_RECOVERY,
+    UNKNOW_KEY_USAGE;
+}

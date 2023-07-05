@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>2.7.9</version>
+        <relativePath/> <!-- lookup parent from repository -->
+    </parent>
+    <groupId>fpt.esignature</groupId>
+    <artifactId>sign</artifactId>
+    <version>1.0</version>
+    <packaging>war</packaging>
+    <name>sign</name>
+    <description>sign</description>
+    <properties>
+        <java.version>1.8</java.version>
+        <start-class>fpt.signature.sign.SignApplication</start-class>
+    </properties>
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>2.8.9</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-configuration</groupId>
+            <artifactId>commons-configuration</artifactId>
+            <version>1.10</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.11.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.santuario</groupId>
+            <artifactId>xmlsec</artifactId>
+            <version>3.0.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-tomcat</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>bcpkix-jdk15on</groupId>
+            <artifactId>bcpkix-jdk15on</artifactId>
+            <version>1.49.0</version>
+            <scope>system</scope>
+            <systemPath>${basedir}/lib/bcpkix-jdk15on-1.49.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>bcprov-jdk15on</groupId>
+            <artifactId>bcprov-jdk15on</artifactId>
+            <version>1.49.0</version>
+            <scope>system</scope>
+            <systemPath>${basedir}/lib/bcprov-jdk15on-1.49.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+            <version>1.2.17</version>
+            <scope>system</scope>
+            <systemPath>${basedir}/lib/log4j-1.2.14.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>SignServer-Lib</groupId>
+            <artifactId>SignServer-Lib</artifactId>
+            <version>1.0.0</version>
+            <scope>system</scope>
+            <systemPath>${basedir}/lib/SignServer-Lib-iText.jar</systemPath>
+        </dependency>
+    </dependencies>
+
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <includeSystemScope>true</includeSystemScope>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>

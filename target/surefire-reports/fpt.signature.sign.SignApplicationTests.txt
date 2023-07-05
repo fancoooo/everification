@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: fpt.signature.sign.SignApplicationTests
+-------------------------------------------------------------------------------
+Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.246 s - in fpt.signature.sign.SignApplicationTests

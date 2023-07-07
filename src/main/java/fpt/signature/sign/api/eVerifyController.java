@@ -44,6 +44,7 @@ public class eVerifyController {
             response.setResponseCode(0);
             response.setError(true);
             response.setResponseMessage("Lỗi khi verify : " + var6.getMessage());
+            var6.printStackTrace();
         }
         return response;
     }

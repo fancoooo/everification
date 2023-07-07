@@ -11,6 +11,7 @@ import fpt.signature.sign.ex.InvalidCerException;
 import fpt.signature.sign.ex.NotFoundSignature;
 import fpt.signature.sign.ex.NotFoundURL;
 import fpt.signature.sign.ocsp.OCSPCertStatus;
+import fpt.signature.sign.ocsp.OCSPConnection;
 import fpt.signature.sign.service.IESignatureService;
 import fpt.signature.sign.service.IEVerifyService;
 import fpt.signature.sign.object.*;
@@ -19,6 +20,8 @@ import fpt.signature.sign.utils.HashUtils;
 import fpt.signature.sign.utils.Utils;
 import keystore.KeyAndCertChain;
 import keystore.KeystoreFactory;
+import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.springframework.stereotype.Service;
 
@@ -29,10 +32,13 @@ import java.security.cert.Certificate;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.util.*;
+import java.util.logging.Level;
 
 @Service
 public class EVerifyService implements IEVerifyService {
     private final Verify verify = new Verify();
+
+    private static final org.apache.log4j.Logger LOG = Logger.getLogger(EVerifyService.class);
     @Override
     public List<VerifyResult> verifyPdf(byte[] data) throws Exception {
         List<VerifyResult> result = new ArrayList();
@@ -41,11 +47,12 @@ public class EVerifyService implements IEVerifyService {
         try {
             reader = new PdfReader(data);
         } catch (IOException var26) {
-
+            LOG.error("Load file pdf error: "+ var26.getMessage());
         }
 
         AcroFields af = reader.getAcroFields();
         ArrayList<String> names = af.getSignatureNames();
+        LOG.info("number of siagnture: " + names.size());
         if (names != null && !names.isEmpty()) {
             int index = 0;
             if (names.size() > 0) {
@@ -56,10 +63,12 @@ public class EVerifyService implements IEVerifyService {
 
                     X509Certificate signerCertificate = null;
                     PdfPKCS7 pkcs7 = null;
+                    String serialNumber = null;
 
 
                     try {
                         VerifyResult res = new VerifyResult();
+
                         result.add(res);
                         res.setCertStatus(ValidateStatus.UNKNOW.toString());
                         res.setSignatureIndex(index);
@@ -69,15 +78,21 @@ public class EVerifyService implements IEVerifyService {
                             pkcs7 = af.verifySignature(name, "BC");
                             bResult = pkcs7.verify();
 
+                            signerCertificate = pkcs7.getSigningCertificate();
+                            serialNumber = DatatypeConverter.printHexBinary(signerCertificate.getSerialNumber().toByteArray()).toLowerCase();
+                            res.setSerialNumber(serialNumber);
+                            LOG.debug(serialNumber + ": verify signature success");
+
                         }catch (Exception ex){
                             //
+                            LOG.debug(serialNumber + ": verify signature error -> " + ex.getMessage());
                         }
 
                         res.setSignatureStatus(bResult);
 
                         Date  signingTime = pkcs7.getSignDate().getTime();
                         String algorithm = pkcs7.getHashAlgorithm();
-                        signerCertificate = pkcs7.getSigningCertificate();
+
 
                         res.setEffectDate(signerCertificate.getNotBefore());
                         res.setExpriteDate(signerCertificate.getNotAfter());
@@ -91,11 +106,6 @@ public class EVerifyService implements IEVerifyService {
                         String issuerDn = x500IssuerName.toString();
 
                         res.setIssuer(issuerDn);
-
-
-                        String serialNumber = DatatypeConverter.printHexBinary(signerCertificate.getSerialNumber().toByteArray()).toLowerCase();
-                        res.setSerialNumber(serialNumber);
-
 
                         res.setSigningTime(signingTime);
 
@@ -128,20 +138,27 @@ public class EVerifyService implements IEVerifyService {
                             }
                         }
                     } catch (InvalidCerException var27) {
-                        //Logger.getLogger(VerifyPDF.class.getName()).log(Level.SEVERE, (String)null, var27);
+                        var27.printStackTrace();
+                        LOG.error(var27.getMessage());
                     } catch (CertificateEncodingException var28) {
-                        //Logger.getLogger(VerifyPDF.class.getName()).log(Level.SEVERE, (String)null, var28);
+                        var28.printStackTrace();
+                        LOG.error(var28);
                     } catch (NotFoundURL var30) {
-                        //Logger.getLogger(VerifyPDF.class.getName()).log(Level.SEVERE, (String)null, var30);
+                        var30.printStackTrace();
+                        LOG.error(var30);
                     } catch (ConnectErrorException var31) {
-                        //Logger.getLogger(VerifyPDF.class.getName()).log(Level.SEVERE, (String)null, var31);
+                        var31.printStackTrace();
+                        LOG.error(var31);
+                    }catch(Exception var32){
+                        var32.printStackTrace();
+                        LOG.error(var32);
                     }
                 }
             }
-
-            return result;
         } else {
-            throw new NotFoundSignature();
+           LOG.debug("File not found signature");
         }
+
+        return result;
     }
 }

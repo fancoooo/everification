@@ -135,7 +135,7 @@ public class OCSPConnection implements IOCSPConnection {
     }
 
     public OCSPCertStatus checkCerOCSP(X509Certificate cert, String ocspUrl, Date dateTime) throws InvalidCerException, ConnectErrorException, NotFoundURL {
-        LOG.info("Checking for ocsp status...");
+        System.out.println("Checking for ocsp status...");
         if (cert == null) {
             throw new InvalidCerException(new Date() + ":Base64 Certificate of user input incorrect");
         } else {
@@ -146,9 +146,10 @@ public class OCSPConnection implements IOCSPConnection {
 
             X509Certificate issuer = Utils.getIssuerCert(cert);
             if (issuer == null) {
-                LOG.error("Not found issuer certificate");
+                System.out.println("Not found issuer certificate");
                 return OCSPCertStatus.UNKNOWN;
             } else {
+                System.out.println("found issuer certificate");
                 OCSPCertStatus certStatus = OCSPCertStatus.UNKNOWN;
 
                 try {
@@ -304,7 +305,7 @@ public class OCSPConnection implements IOCSPConnection {
     private OCSPResp queryOcspResponse(OCSPReq ocspReq, X509CertificateInfo cerInfo, X509Certificate cert, X509Certificate issuer) {
         if (cerInfo != null && cerInfo.getUrlOcsp() != null) {
             if (!cerInfo.getUrlOcsp().startsWith("http")) {
-                LOG.error("Only http protocol is supported for ocsp url.");
+                System.out.println("Only http protocol is supported for ocsp url.");
                 return null;
             } else {
                 LOG.info(cerInfo.getUrlOcsp());
@@ -313,7 +314,7 @@ public class OCSPConnection implements IOCSPConnection {
                 try {
                     requestData = ocspReq.getEncoded();
                 } catch (IOException var22) {
-                    LOG.error("No ocsp request data.", var22);
+                    System.out.println("No ocsp request data."+ var22.getMessage());
                     return null;
                 }
 

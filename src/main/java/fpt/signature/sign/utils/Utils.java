@@ -373,55 +373,61 @@ public class Utils {
             String jboss_home = null;
             if (issuer == null) {
                 System.out.println("get issuer cert from config file");
-                String[] issuerName = cert.getIssuerDN().getName().split(",");
-                String name = null;
-                String[] var6 = issuerName;
-                int var7 = issuerName.length;
+                try{
+                    String[] issuerName = cert.getIssuerDN().getName().split(",");
+                    String name = null;
+                    String[] var6 = issuerName;
+                    int var7 = issuerName.length;
 
-                for(int var8 = 0; var8 < var7; ++var8) {
-                    String ob = var6[var8];
-                    if (ob.contains("CN=")) {
-                        name = ob.trim().substring(ob.trim().lastIndexOf("CN=") + 3);
-                        break;
-                    }
-                }
-
-                if (name == null) {
-                    return issuer;
-                }
-
-                PropertiesConfiguration cerConfig = null;
-
-                String certIsser;
-                File fCertIssuer;
-                try {
-                    jboss_home = System.getenv("JBOSS_HOME");
-                    if (jboss_home == null) {
-                        certIsser = System.getProperty("user.dir");
-                        jboss_home = certIsser.substring(0, certIsser.length() - "bin".length());
-                    }
-
-                    Path path = Paths.get(jboss_home, "standalone", "configuration", "issuer-config", "config.properties");
-                    fCertIssuer = new File(path.toString());
-                    if (fCertIssuer.exists() && !fCertIssuer.isDirectory()) {
-                        cerConfig = new PropertiesConfiguration(path.toString());
-                    }
-                } catch (ConfigurationException var10) {
-                    //Logger.getLogger(CRLConnection.class.getName()).log(Level.SEVERE, (String)null, var10);
-                }
-
-                if (cerConfig != null) {
-                    certIsser = cerConfig.getString(name.replace(" ", "_"));
-                    if (certIsser != null) {
-                        fCertIssuer = new File(certIsser);
-                        if (fCertIssuer.exists() && !fCertIssuer.isDirectory()) {
-                            issuer = getCerFromCerFile(certIsser);
-                        } else {
-                            Path pathFileIssuer = Paths.get(jboss_home, "standalone", "configuration", "issuer-config", certIsser);
-                            issuer = getCerFromCerFile(pathFileIssuer.toString());
+                    for(int var8 = 0; var8 < var7; ++var8) {
+                        String ob = var6[var8];
+                        if (ob.contains("CN=")) {
+                            name = ob.trim().substring(ob.trim().lastIndexOf("CN=") + 3);
+                            break;
                         }
                     }
+
+                    if (name == null) {
+                        return issuer;
+                    }
+
+                    PropertiesConfiguration cerConfig = null;
+
+                    String certIsser;
+                    File fCertIssuer;
+                    try {
+                        jboss_home = System.getenv("JBOSS_HOME");
+                        if (jboss_home == null) {
+                            certIsser = System.getProperty("user.dir");
+                            jboss_home = certIsser.substring(0, certIsser.length() - "bin".length());
+                        }
+
+                        Path path = Paths.get(jboss_home, "standalone", "configuration", "issuer-config", "config.properties");
+                        fCertIssuer = new File(path.toString());
+                        if (fCertIssuer.exists() && !fCertIssuer.isDirectory()) {
+                            cerConfig = new PropertiesConfiguration(path.toString());
+                        }
+                    } catch (ConfigurationException var10) {
+                        //Logger.getLogger(CRLConnection.class.getName()).log(Level.SEVERE, (String)null, var10);
+                    }
+
+                    if (cerConfig != null) {
+                        certIsser = cerConfig.getString(name.replace(" ", "_"));
+                        if (certIsser != null) {
+                            fCertIssuer = new File(certIsser);
+                            if (fCertIssuer.exists() && !fCertIssuer.isDirectory()) {
+                                issuer = getCerFromCerFile(certIsser);
+                            } else {
+                                Path pathFileIssuer = Paths.get(jboss_home, "standalone", "configuration", "issuer-config", certIsser);
+                                issuer = getCerFromCerFile(pathFileIssuer.toString());
+                            }
+                        }
+                    }
+                }catch (Exception e){
+                    System.out.println("ERROR:" + e.getMessage());
+                    e.printStackTrace();
                 }
+
             }
 
             return issuer;

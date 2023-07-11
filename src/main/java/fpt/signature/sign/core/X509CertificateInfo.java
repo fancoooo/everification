@@ -167,22 +167,25 @@ public class X509CertificateInfo {
             X509Certificate cert = null;
 
             try {
-                LOG.debug("Start query Issuer certificate at " + this.urlCaCert);
+                System.out.println("Start query Issuer certificate at " + this.urlCaCert);
 
                 InputStream inStream = queryUrlConnection(this.urlCaCert);
                 if(this.urlCaCert.toLowerCase().endsWith(".p7b")){
                     cert = readCertificatesIssuerFromPKCS7(IOUtils.toByteArray(inStream));
-                    LOG.debug("Isser in File p7b :  " + cert.getSubjectDN().getName());
+                    System.out.println("Isser in File p7b :  " + cert.getSubjectDN().getName());
                 }else{
                     CertificateFactory factory = CertificateFactory.getInstance("X509");
                     cert = (X509Certificate)factory.generateCertificate(inStream);
                 }
 
             } catch (CertificateException var4) {
+                var4.printStackTrace();
                 java.util.logging.Logger.getLogger(X509CertificateInfo.class.getName()).log(Level.SEVERE, var4.getMessage());
             } catch (IOException ex) {
+                ex.printStackTrace();
                 java.util.logging.Logger.getLogger(X509CertificateInfo.class.getName()).log(Level.SEVERE, null, ex);
             } catch (Exception ex) {
+                ex.printStackTrace();
                 java.util.logging.Logger.getLogger(X509CertificateInfo.class.getName()).log(Level.SEVERE, null, ex);
             }
 
@@ -300,7 +303,8 @@ public class X509CertificateInfo {
                 proxyPort = Integer.parseInt(System.getenv("PROXY_PORT"));
             }
         } catch (Exception var15) {
-            LOG.error("Cannot read PROXY envirollment variables", var15);
+            System.out.println("Cannot read PROXY envirollment variables" +  var15.getMessage());
+            var15.printStackTrace();
         }
 
         confUseProxy = null;
@@ -309,7 +313,8 @@ public class X509CertificateInfo {
         try {
             url = new URL(urlValue);
         } catch (MalformedURLException var14) {
-            LOG.error("Url is malformed", var14);
+            System.out.println("Url is malformed" + var14.getMessage());
+            var14.printStackTrace();
             return null;
         }
 
@@ -331,7 +336,8 @@ public class X509CertificateInfo {
                 Proxy proxy = new Proxy(Type.HTTP, new InetSocketAddress(proxyIp, proxyPort));
                 con = (HttpURLConnection)url.openConnection(proxy);
             } catch (Exception var13) {
-                LOG.error("Cannot create url connection", var13);
+                System.out.println("Cannot create url connection" + var13.getMessage());
+                var13.printStackTrace();
             }
         } else {
             LOG.info("Query without proxy");
@@ -339,7 +345,8 @@ public class X509CertificateInfo {
             try {
                 con = (HttpURLConnection)url.openConnection();
             } catch (Exception var12) {
-                LOG.error("Cannot create url connection", var12);
+                System.out.println("Cannot create url connection" + var12.getMessage());
+                var12.printStackTrace();
             }
         }
 
@@ -349,7 +356,7 @@ public class X509CertificateInfo {
             try {
                 con.setConnectTimeout(300);
                 if (con.getResponseCode() != 200) {
-                    LOG.error("Query not complete. Received error code=" + con.getResponseCode() + ". " + con.getResponseMessage());
+                    System.out.println("Query not complete. Received error code=" + con.getResponseCode() + ". " + con.getResponseMessage());
                 }
             } catch (IOException var16) {
                 java.util.logging.Logger.getLogger(X509CertificateInfo.class.getName()).log(Level.SEVERE, var16.getMessage() + " at X509CertificateInfo[329]");
@@ -361,7 +368,8 @@ public class X509CertificateInfo {
                 LOG.info("Query complete.");
                 return in;
             } catch (Exception var11) {
-                LOG.error("Cannot connect to host: " + var11.getMessage(), var11);
+                System.out.println("Cannot connect to host: " + var11.getMessage());
+                var11.printStackTrace();
                 return null;
             }
         }

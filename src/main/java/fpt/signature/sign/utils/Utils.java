@@ -386,7 +386,7 @@ public class Utils {
                             break;
                         }
                     }
-
+                    System.out.println("CN = " + name);
                     if (name == null) {
                         return issuer;
                     }
@@ -397,12 +397,17 @@ public class Utils {
                     File fCertIssuer;
                     try {
                         jboss_home = System.getenv("JBOSS_HOME");
+                        System.out.println("HOME = " + jboss_home);
                         if (jboss_home == null) {
-                            certIsser = System.getProperty("user.dir");
-                            jboss_home = certIsser.substring(0, certIsser.length() - "bin".length());
+                            jboss_home = System.getProperty("user.dir");
+                            System.out.println("DIR = " + jboss_home);
+                            //jboss_home = certIsser.substring(0, certIsser.length() - "bin".length());
+
                         }
 
-                        Path path = Paths.get(jboss_home, "standalone", "configuration", "issuer-config", "config.properties");
+                        //Path path = Paths.get(jboss_home, "standalone", "configuration", "issuer-config", "config.properties");
+                        Path path = Paths.get(jboss_home, "opt", "issuer-config","config.properties");
+                        System.out.println("Path  = " + path.toString());
                         fCertIssuer = new File(path.toString());
                         if (fCertIssuer.exists() && !fCertIssuer.isDirectory()) {
                             cerConfig = new PropertiesConfiguration(path.toString());
@@ -418,7 +423,7 @@ public class Utils {
                             if (fCertIssuer.exists() && !fCertIssuer.isDirectory()) {
                                 issuer = getCerFromCerFile(certIsser);
                             } else {
-                                Path pathFileIssuer = Paths.get(jboss_home, "standalone", "configuration", "issuer-config", certIsser);
+                                Path pathFileIssuer = Paths.get(jboss_home, "opt","issuer-config", certIsser);
                                 issuer = getCerFromCerFile(pathFileIssuer.toString());
                             }
                         }

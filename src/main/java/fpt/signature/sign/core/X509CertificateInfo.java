@@ -354,7 +354,7 @@ public class X509CertificateInfo {
             return null;
         } else {
             try {
-                con.setConnectTimeout(1000000);
+                con.setConnectTimeout(300);
                 if (con.getResponseCode() != 200) {
                     System.out.println("Query not complete. Received error code=" + con.getResponseCode() + ". " + con.getResponseMessage());
                 }

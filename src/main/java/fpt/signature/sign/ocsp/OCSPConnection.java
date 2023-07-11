@@ -135,7 +135,7 @@ public class OCSPConnection implements IOCSPConnection {
     }
 
     public OCSPCertStatus checkCerOCSP(X509Certificate cert, String ocspUrl, Date dateTime) throws InvalidCerException, ConnectErrorException, NotFoundURL {
-        System.out.println("Checking for ocsp status...");
+        LOG.info("Checking for ocsp status...");
         if (cert == null) {
             throw new InvalidCerException(new Date() + ":Base64 Certificate of user input incorrect");
         } else {
@@ -146,10 +146,10 @@ public class OCSPConnection implements IOCSPConnection {
 
             X509Certificate issuer = Utils.getIssuerCert(cert);
             if (issuer == null) {
-                System.out.println("Not found issuer certificate");
+                LOG.debug("Not found issuer certificate");
                 return OCSPCertStatus.UNKNOWN;
             } else {
-                System.out.println("found issuer certificate");
+                LOG.debug("found issuer certificate");
                 OCSPCertStatus certStatus = OCSPCertStatus.UNKNOWN;
 
                 try {

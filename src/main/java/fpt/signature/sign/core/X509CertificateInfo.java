@@ -167,12 +167,12 @@ public class X509CertificateInfo {
             X509Certificate cert = null;
 
             try {
-                System.out.println("Start query Issuer certificate at " + this.urlCaCert);
+                LOG.debug("Start query Issuer certificate at " + this.urlCaCert);
 
                 InputStream inStream = queryUrlConnection(this.urlCaCert);
                 if(this.urlCaCert.toLowerCase().endsWith(".p7b")){
                     cert = readCertificatesIssuerFromPKCS7(IOUtils.toByteArray(inStream));
-                    System.out.println("Isser in File p7b :  " + cert.getSubjectDN().getName());
+                    LOG.debug("Isser in File p7b :  " + cert.getSubjectDN().getName());
                 }else{
                     CertificateFactory factory = CertificateFactory.getInstance("X509");
                     cert = (X509Certificate)factory.generateCertificate(inStream);

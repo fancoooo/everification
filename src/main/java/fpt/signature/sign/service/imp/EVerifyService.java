@@ -43,16 +43,17 @@ public class EVerifyService implements IEVerifyService {
     public List<VerifyResult> verifyPdf(byte[] data) throws Exception {
         List<VerifyResult> result = new ArrayList();
         PdfReader reader = null;
+        System.out.println("START");
 
         try {
             reader = new PdfReader(data);
         } catch (IOException var26) {
-            LOG.error("Load file pdf error: "+ var26.getMessage());
+            System.out.println("Load file pdf error: "+ var26.getMessage());
         }
 
         AcroFields af = reader.getAcroFields();
         ArrayList<String> names = af.getSignatureNames();
-        LOG.info("number of siagnture: " + names.size());
+        System.out.println("number of siagnture: " + names.size());
         if (names != null && !names.isEmpty()) {
             int index = 0;
             if (names.size() > 0) {
@@ -81,11 +82,11 @@ public class EVerifyService implements IEVerifyService {
                             signerCertificate = pkcs7.getSigningCertificate();
                             serialNumber = DatatypeConverter.printHexBinary(signerCertificate.getSerialNumber().toByteArray()).toLowerCase();
                             res.setSerialNumber(serialNumber);
-                            LOG.info(serialNumber + ": verify signature success");
+                            System.out.println(serialNumber + ": verify signature success");
 
                         }catch (Exception ex){
                             //
-                            LOG.error(serialNumber + ": verify signature error -> " + ex.getMessage());
+                            System.out.println(serialNumber + ": verify signature error -> " + ex.getMessage());
                         }
 
                         res.setSignatureStatus(bResult);

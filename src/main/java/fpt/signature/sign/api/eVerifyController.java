@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@RequestMapping({"/rest/everify"})
+@RequestMapping({"/api/everify"})
 public class eVerifyController {
     @Autowired
     private IEVerifyService eVerifyService;

@@ -16,6 +16,11 @@ public class ValidationData {
         this.certVerifyMethod = certVerifyMethod;
     }
 
+
+    public ValidationData() {
+
+    }
+
     public byte[] getSignedData() {
         return this.signedData;
     }

@@ -1,57 +1,135 @@
-D:\DATA\H\IntelliJ IDEA Project\sign\src\main\java\fpt\signature\sign\service\IESignatureService.java
-D:\DATA\H\IntelliJ IDEA Project\sign\src\main\java\fpt\signature\sign\service\IEVerifyService.java
-D:\DATA\H\IntelliJ IDEA Project\sign\src\main\java\fpt\signature\sign\ex\NotFoundURL.java
-D:\DATA\H\IntelliJ IDEA Project\sign\src\main\java\fpt\signature\sign\utils\ConfigFile.java
-D:\DATA\H\IntelliJ IDEA Project\sign\src\main\java\fpt\signature\sign\object\EnhancedKeyUsage.java
-D:\DATA\H\IntelliJ IDEA Project\sign\src\main\java\fpt\signature\sign\object\ValidateStatus.java
-D:\DATA\H\IntelliJ IDEA Project\sign\src\main\java\fpt\signature\sign\crl\CRLConnection.java
-D:\DATA\H\IntelliJ IDEA Project\sign\src\main\java\fpt\signature\sign\crl\ICRLConnection.java
-D:\DATA\H\IntelliJ IDEA Project\sign\src\main\java\fpt\signature\sign\license\LicenseManager.java
-D:\DATA\H\IntelliJ IDEA Project\sign\src\main\java\fpt\signature\sign\service\imp\EVerifyService.java
-D:\DATA\H\IntelliJ IDEA Project\sign\src\main\java\fpt\signature\sign\license\ValidationData.java
-D:\DATA\H\IntelliJ IDEA Project\sign\src\main\java\fpt\signature\sign\ex\InvalidBase64Input.java
-D:\DATA\H\IntelliJ IDEA Project\sign\src\main\java\fpt\signature\sign\license\RSAProvider.java
-D:\DATA\H\IntelliJ IDEA Project\sign\src\main\java\keystore\KeyStoreType.java
-D:\DATA\H\IntelliJ IDEA Project\sign\src\main\java\fpt\signature\sign\api\LicenseController.java
-D:\DATA\H\IntelliJ IDEA Project\sign\src\main\java\fpt\signature\sign\ocsp\IOCSPConnection.java
-D:\DATA\H\IntelliJ IDEA Project\sign\src\main\java\fpt\signature\sign\ex\ConnectErrorException.java
-D:\DATA\H\IntelliJ IDEA Project\sign\src\main\java\fpt\signature\sign\core\Verify.java
-D:\DATA\H\IntelliJ IDEA Project\sign\src\main\java\fpt\signature\sign\utils\HashUtils.java
-D:\DATA\H\IntelliJ IDEA Project\sign\src\main\java\fpt\signature\sign\ex\NotFoundSignature.java
-D:\DATA\H\IntelliJ IDEA Project\sign\src\main\java\fpt\signature\sign\ocsp\OCSPCertStatus.java
-D:\DATA\H\IntelliJ IDEA Project\sign\src\main\java\fpt\signature\sign\core\X509CertificateInfo.java
-D:\DATA\H\IntelliJ IDEA Project\sign\src\main\java\fpt\signature\sign\core\CertTools.java
-D:\DATA\H\IntelliJ IDEA Project\sign\src\main\java\fpt\signature\sign\license\XmlUtil.java
-D:\DATA\H\IntelliJ IDEA Project\sign\src\main\java\keystore\KeyAndCertChain.java
-D:\DATA\H\IntelliJ IDEA Project\sign\src\main\java\fpt\signature\sign\ocsp\OCSPResponseCode.java
-D:\DATA\H\IntelliJ IDEA Project\sign\src\main\java\fpt\signature\sign\api\request\SignPDFRequest.java
-D:\DATA\H\IntelliJ IDEA Project\sign\src\main\java\fpt\signature\sign\object\VERIFY_RESULT.java
-D:\DATA\H\IntelliJ IDEA Project\sign\src\main\java\fpt\signature\sign\utils\Utils.java
-D:\DATA\H\IntelliJ IDEA Project\sign\src\main\java\fpt\signature\sign\api\response\SignPDFResponse.java
-D:\DATA\H\IntelliJ IDEA Project\sign\src\main\java\fpt\signature\sign\SignApplication.java
-D:\DATA\H\IntelliJ IDEA Project\sign\src\main\java\fpt\signature\sign\object\EnKeyUsage.java
-D:\DATA\H\IntelliJ IDEA Project\sign\src\main\java\fpt\signature\sign\core\PdfSigner.java
-D:\DATA\H\IntelliJ IDEA Project\sign\src\main\java\keystore\KeystoreFactory.java
-D:\DATA\H\IntelliJ IDEA Project\sign\src\main\java\fpt\signature\sign\api\eSignatureController.java
-D:\DATA\H\IntelliJ IDEA Project\sign\src\main\java\fpt\signature\sign\api\request\VerifyPDFRequest.java
-D:\DATA\H\IntelliJ IDEA Project\sign\src\main\java\fpt\signature\sign\ex\NotFoundOrInvalidFormatCRLFile.java
-D:\DATA\H\IntelliJ IDEA Project\sign\src\main\java\fpt\signature\sign\license\BiosManagerFactory.java
-D:\DATA\H\IntelliJ IDEA Project\sign\src\main\java\fpt\signature\sign\ocsp\OCSPConnection.java
-D:\DATA\H\IntelliJ IDEA Project\sign\src\main\java\fpt\signature\sign\utils\Base64Utils.java
-D:\DATA\H\IntelliJ IDEA Project\sign\src\main\java\fpt\signature\sign\license\XmlValidator.java
-D:\DATA\H\IntelliJ IDEA Project\sign\src\main\java\fpt\signature\sign\crl\CRLCertStatus.java
-D:\DATA\H\IntelliJ IDEA Project\sign\src\main\java\fpt\signature\sign\utils\ResouceFile.java
-D:\DATA\H\IntelliJ IDEA Project\sign\src\main\java\fpt\signature\sign\ex\InvalidCerException.java
-D:\DATA\H\IntelliJ IDEA Project\sign\src\main\java\fpt\signature\sign\ex\NotFoundAnyKeyUsage.java
-D:\DATA\H\IntelliJ IDEA Project\sign\src\main\java\fpt\signature\sign\core\ValidationUtils.java
-D:\DATA\H\IntelliJ IDEA Project\sign\src\main\java\fpt\signature\sign\license\ValidationResponseData.java
-D:\DATA\H\IntelliJ IDEA Project\sign\src\main\java\fpt\signature\sign\api\eVerifyController.java
-D:\DATA\H\IntelliJ IDEA Project\sign\src\main\java\fpt\signature\sign\license\SignServerSignaturesException.java
-D:\DATA\H\IntelliJ IDEA Project\sign\src\main\java\fpt\signature\sign\api\request\BaseRequest.java
-D:\DATA\H\IntelliJ IDEA Project\sign\src\main\java\fpt\signature\sign\service\imp\ESignatureService.java
-D:\DATA\H\IntelliJ IDEA Project\sign\src\main\java\fpt\signature\sign\license\WindowsBiosManager.java
-D:\DATA\H\IntelliJ IDEA Project\sign\src\main\java\fpt\signature\sign\api\response\BaseResponse.java
-D:\DATA\H\IntelliJ IDEA Project\sign\src\main\java\fpt\signature\sign\object\VerifyResult.java
-D:\DATA\H\IntelliJ IDEA Project\sign\src\main\java\fpt\signature\sign\object\MobileIDX500NameStyle.java
-D:\DATA\H\IntelliJ IDEA Project\sign\src\main\java\fpt\signature\sign\license\LinuxBiosManager.java
-D:\DATA\H\IntelliJ IDEA Project\sign\src\main\java\fpt\signature\sign\license\IBiosManager.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\database\DatabaseConnectionManager.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\license\BiosManagerFactory.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\aws\AWSCall.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\everification\objects\Rectangle.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\license\LinuxBiosManager.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\aws\datatypes\PadesConstants.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\utils\Base64Utils.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\database\Database.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\utils\ResouceFile.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\tsa\TsaResponse.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\api\EkycController.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\service\imp\ESignatureService.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\database\DataSource.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\license\XmlValidator.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\everification\objects\CrlData.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\auth\AuthRequest.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\aws\datatypes\Revocation.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\everification\objects\TSAChecks.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\everification\revocation\OcspValidator.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\utils\HashUtils.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\license\SignServerSignaturesException.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\aws\response\PadesResponse.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\crl\ICRLConnection.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\everification\objects\BasicOCSPRespComparable.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\ex\InvalidBase64Input.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\object\InternalResponse.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\aws\datatypes\PrintResponse.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\everification\revocation\CrlValidator.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\SignApplication.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\core\CertTools.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\database\DataSourceWriteOnly.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\everification\core\RevocationStatusChecks.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\utils\URLRedirection.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\utils\UnicodeRemoval.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\license\LicenseManager.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\com\itextpdf\signatures\CRLVerifierEx.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\everification\core\PAdESVerificationItext7.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\utils\ConfigFile.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\service\imp\EVerifyService.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\core\X509CertificateInfo.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\api\request\OcrRequest.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\object\EnhancedKeyUsage.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\tsa\TimstampTokenService.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\aws\datatypes\JsonFormatter.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\everification\objects\ValidityChecks.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\ex\NotFoundURL.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\utils\Crypto.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\everification\core\XAdESVerification.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\everification\objects\ValidityResult.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\license\RSAProvider.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\license\WindowsBiosManager.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\api\LicenseController.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\everification\objects\VerificationInternalResponse.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\tsa\DataR.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\everification\core\ValidityStatusChecks.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\aws\datatypes\VerificationDetails.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\utils\CertificatePolicy.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\tsa\Data.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\ex\InvalidCerException.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\everification\core\AdobeLtvEnabling.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\crl\CRLConnection.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\everification\objects\CAProperties.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\license\IBiosManager.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\database\DatabaseImp.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\everification\objects\RequestJSNObject.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\tsa\TsaRequest.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\crl\CRLCertStatus.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\object\EnKeyUsage.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\com\itextpdf\signatures\OCSPVerifierEx.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\tsa\DataContentR.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\object\VERIFY_RESULT.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\everification\core\TrustedCertificateChecks.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\everification\revocation\OcspInvocation.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\everification\revocation\ValidationReq.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\license\ValidationResponseData.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\object\VerifyResult.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\utils\MobileIDX500NameStyle.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\api\request\VerifyPDFRequest.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\everification\objects\Annotation.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\everification\objects\Endpoint.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\core\PdfSigner.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\aws\request\PadesRequset.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\aws\datatypes\ValidityResults.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\keystore\KeyAndCertChain.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\ocsp\OCSPConnection.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\auth\UsersToken.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\api\response\BaseResponse.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\tsa\DatainfoR.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\ex\NotFoundSignature.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\license\XmlUtil.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\everification\objects\CertificationAuthority.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\everification\objects\OCSP.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\everification\revocation\CrlInvocation.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\utils\Configuration.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\utils\Settings.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\api\request\SignPDFRequest.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\api\response\SignPDFResponse.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\tsa\Datainfo.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\api\request\BaseRequest.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\general\Resources.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\everification\objects\CertDataValidation.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\object\ValidateStatus.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\keystore\KeystoreFactory.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\keystore\KeyStoreType.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\aws\HttpUtils.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\tsa\DataContent.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\service\IESignatureService.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\ocsp\OCSPResponseCode.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\everification\core\CertPathValidation.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\everification\objects\RevocationChecks.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\api\TSAController.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\database\DataSourceReadOnly.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\everification\objects\X509CRLComparable.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\everification\revocation\ValidationResp.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\ex\NotFoundAnyKeyUsage.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\service\IEVerifyService.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\everification\core\TypeSig.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\everification\objects\Result.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\api\eSignatureController.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\everification\objects\CRL.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\ex\NotFoundOrInvalidFormatCRLFile.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\everification\objects\VerificationDetails.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\core\ValidationUtils.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\utils\Utils.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\aws\response\TokenResponse.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\ocsp\IOCSPConnection.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\core\Verify.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\api\AuthController.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\everification\objects\Attributes.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\ex\ConnectErrorException.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\object\MobileIDX500NameStyle.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\ocsp\OCSPCertStatus.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\api\eVerifyController.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\everification\objects\SignatureProperties.java
+D:\DATA\G\DUAN\EVERIFICATION\api\src\main\java\fpt\signature\sign\license\ValidationData.java

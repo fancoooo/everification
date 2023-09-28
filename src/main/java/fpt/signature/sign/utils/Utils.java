@@ -1,38 +1,29 @@
 package fpt.signature.sign.utils;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.StringReader;
-import java.io.StringWriter;
+import java.io.*;
 import java.net.URL;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
+import java.security.*;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.security.interfaces.RSAPublicKey;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.X509EncodedKeySpec;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.TimeZone;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
+import javax.servlet.http.HttpServletRequest;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -41,6 +32,7 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
+import com.google.gson.Gson;
 import fpt.signature.sign.core.X509CertificateInfo;
 import fpt.signature.sign.ex.ConnectErrorException;
 import fpt.signature.sign.ex.InvalidCerException;
@@ -66,6 +58,56 @@ import org.xml.sax.SAXException;
 public class Utils {
     private static final String MIC_National_Root_CA = "MIC National Root CA";
     private static final String MIC_National_Root_CA_Thumprint = "MIC_National_Root_CA_Thumprint";
+
+    private static final char[] hexCode = "0123456789ABCDEF".toCharArray();
+
+    private static final Gson gson = new Gson();
+
+
+    public static PrivateKey getPrivateKeyFromString(String key) throws Exception {
+        byte[] encoded;
+        String privateKeyPEM = key;
+        privateKeyPEM = privateKeyPEM.replace("-----BEGIN PRIVATE KEY-----\n", "");
+        privateKeyPEM = privateKeyPEM.replace("-----END PRIVATE KEY-----", "");
+        privateKeyPEM = privateKeyPEM.replace("-----BEGIN RSA PRIVATE KEY-----\n", "");
+        privateKeyPEM = privateKeyPEM.replace("-----END RSA PRIVATE KEY-----", "");
+        privateKeyPEM = privateKeyPEM.replace("\n", "").replace("\r", "");
+
+        encoded = java.util.Base64.getDecoder().decode(privateKeyPEM);
+        KeyFactory kf = KeyFactory.getInstance("RSA");
+        PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(encoded);
+        PrivateKey privKey = (PrivateKey) kf.generatePrivate(keySpec);
+        return privKey;
+    }
+
+    public static PublicKey getPublicKeyFromString(String key) throws Exception {
+        byte[] encoded;
+        String publicKeyPEM = key;
+        publicKeyPEM = publicKeyPEM.replace("-----BEGIN PUBLIC KEY-----\n", "");
+        publicKeyPEM = publicKeyPEM.replace("-----END PUBLIC KEY-----", "");
+        publicKeyPEM = publicKeyPEM.replace("-----BEGIN RSA PUBLIC KEY-----\n", "");
+        publicKeyPEM = publicKeyPEM.replace("-----END RSA PUBLIC KEY-----", "");
+        publicKeyPEM = publicKeyPEM.replace("\n", "").replace("\r", "");
+
+        encoded = java.util.Base64.getDecoder().decode(publicKeyPEM);
+        KeyFactory kf = KeyFactory.getInstance("RSA");
+        X509EncodedKeySpec keySpec = new X509EncodedKeySpec(encoded);
+        PublicKey pub = (PublicKey) kf.generatePublic(keySpec);
+        return pub;
+    }
+
+    public static String getRequestHeader(HttpServletRequest request, String headerName) {
+        String headerValue = null;
+        Enumeration<String> headerNames = request.getHeaderNames();
+        while (headerNames.hasMoreElements()) {
+            String key = headerNames.nextElement();
+            headerValue = request.getHeader(key);
+            if (key.compareToIgnoreCase(headerName) == 0)
+                return headerValue;
+            headerValue = null;
+        }
+        return headerValue;
+    }
 
     public X509Certificate readCert(String path) throws CertificateException, FileNotFoundException {
         X509Certificate rootCert = null;
@@ -677,5 +719,143 @@ public class Utils {
         }
 
         return null;
+    }
+
+    public static byte[] calcHmacSha256(byte[] secretKey, byte[] message) {
+        byte[] hmacSha256 = null;
+        try {
+            Mac mac = Mac.getInstance("HmacSHA256");
+            SecretKeySpec secretKeySpec = new SecretKeySpec(secretKey, "HmacSHA256");
+            mac.init(secretKeySpec);
+            hmacSha256 = mac.doFinal(message);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to calculate hmac-sha256", e);
+        }
+        return hmacSha256;
+    }
+
+    public static String printHexBinary(byte[] data) {
+        StringBuilder r = new StringBuilder(data.length * 2);
+        for (byte b : data) {
+            r.append(hexCode[b >> 4 & 0xF]);
+            r.append(hexCode[b & 0xF]);
+        }
+        return r.toString();
+    }
+
+    private static int hexToBin(char ch) {
+        if ('0' <= ch && ch <= '9')
+            return ch - 48;
+        if ('A' <= ch && ch <= 'F')
+            return ch - 65 + 10;
+        if ('a' <= ch && ch <= 'f')
+            return ch - 97 + 10;
+        return -1;
+    }
+
+    public static byte[] genRandomArray(int size) throws NoSuchAlgorithmException, NoSuchProviderException {
+        byte[] random = new byte[size];
+        (new Random()).nextBytes(random);
+        return random;
+    }
+
+
+    public static byte[] parseHexBinary(String s) {
+        int len = s.length();
+        if (len % 2 != 0)
+            throw new IllegalArgumentException("hexBinary needs to be even-length: " + s);
+        byte[] out = new byte[len / 2];
+        for (int i = 0; i < len; i += 2) {
+            int h = hexToBin(s.charAt(i));
+            int l = hexToBin(s.charAt(i + 1));
+            if (h == -1 || l == -1)
+                throw new IllegalArgumentException("contains illegal character for hexBinary: " + s);
+            out[i / 2] = (byte)(h * 16 + l);
+        }
+        return out;
+    }
+
+    public static String toJSONString(Object obj){
+        return gson.toJson(obj);
+    }
+
+
+    public static String generateBillCode(String relyingParty, long logId, Date logDatetime) {
+        String billCode = null;
+        try {
+            SimpleDateFormat sdf = new SimpleDateFormat("yyMMddHHmmss");
+            sdf.setTimeZone(TimeZone.getTimeZone(System.getProperty("user.timezone")));
+            String dateTime = sdf.format(logDatetime);
+            billCode = relyingParty + "-" + dateTime + "-" + logId + "-" + generateOneTimePassword(6);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return billCode;
+    }
+
+    public static Date convertToUTC(Date d) throws ParseException {
+        SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+        String s = isoFormat.format(d);
+        isoFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+        Date date = isoFormat.parse(s);
+        return date;
+    }
+
+    public static long getDifferenceBetweenDatesInMinute(Date date1, Date date2) {
+        long diffMs = date2.getTime() - date1.getTime();
+        long diffSec = diffMs / 1000L;
+        long hours = diffSec / 3600L;
+        long min = diffSec / 60L;
+        long sec = diffSec % 60L;
+        return min;
+    }
+
+    public static String generateOneTimePassword(int len) {
+        String numbers = "0123456789";
+        Random rndm_method = new Random();
+        char[] otp = new char[len];
+        for (int i = 0; i < len; i++)
+            otp[i] = numbers.charAt(rndm_method.nextInt(numbers.length()));
+        return new String(otp);
+    }
+
+    public static boolean isNullOrEmpty(String value) {
+        if (value == null)
+            return true;
+        if (value.compareTo("") == 0)
+            return true;
+        return false;
+    }
+
+    public static String getPropertiesFile(String fileName) {
+        return walk(System.getProperty("jboss.server.base.dir"), fileName);
+    }
+
+    public static String walk(String path, String fileName) {
+        try (Stream<Path> walk = Files.walk(Paths.get(path, new String[0]), new java.nio.file.FileVisitOption[0])) {
+            List<String> result = (List<String>)walk.filter(x$0 -> Files.isRegularFile(x$0, new java.nio.file.LinkOption[0])).map(x -> x.toString()).collect(Collectors.toList());
+            for (String f : result) {
+                if (f.contains(fileName))
+                    return f;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public static String printStackTrace(Exception e) {
+        String result = null;
+        try {
+            StringWriter sw = new StringWriter();
+            PrintWriter pw = new PrintWriter(sw);
+            e.printStackTrace(pw);
+            result = sw.toString();
+            pw.close();
+            sw.close();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return result;
     }
 }

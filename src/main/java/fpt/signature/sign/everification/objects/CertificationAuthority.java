@@ -5,7 +5,7 @@ import java.security.cert.X509Certificate;
 import java.util.Date;
 
 public class CertificationAuthority {
-    private int certificationAuthorityID;
+    private Long certificationAuthorityID;
 
     private String name;
 
@@ -35,11 +35,11 @@ public class CertificationAuthority {
 
     private X509Certificate x509Object;
 
-    public int getCertificationAuthorityID() {
+    public Long getCertificationAuthorityID() {
         return this.certificationAuthorityID;
     }
 
-    public void setCertificationAuthorityID(int certificationAuthorityID) {
+    public void setCertificationAuthorityID(Long certificationAuthorityID) {
         this.certificationAuthorityID = certificationAuthorityID;
     }
 

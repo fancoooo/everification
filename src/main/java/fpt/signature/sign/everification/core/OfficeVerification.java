@@ -78,7 +78,6 @@ public class OfficeVerification {
                 is.close();
             }
         } catch (Exception e) {
-            e.printStackTrace();
             LOG.error("Invalid office format. Details: " + Utils.printStackTrace(e));
             return new VerificationInternalResponse(5010, "Invalid office format", billCode);
         }

@@ -24,7 +24,7 @@ public class RelyingParty {
 
     public static final int ATTR_RELYING_PARTY_LICENSE = 70;
 
-    private int id;
+    private Long id;
 
     private boolean authEnabled;
 
@@ -37,11 +37,11 @@ public class RelyingParty {
     private VerificationPropertiesJSNObject verificationProperties;
 
 
-    public int getId() {
+    public Long getId() {
         return this.id;
     }
 
-    public void setId(int id) {
+    public void setId(Long id) {
         this.id = id;
     }
 

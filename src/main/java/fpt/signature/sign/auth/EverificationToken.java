@@ -32,9 +32,11 @@ public class EverificationToken {
     private final Logger LOG = Logger.getLogger(fpt.signature.sign.auth.AuthVerificationRequest.class);
 
     private final TokenCustomerProvider tokenCustomerProvider;
+    private final Resources resources;
 
-    public EverificationToken(TokenCustomerProvider tokenCustomerProvider) {
+    public EverificationToken(TokenCustomerProvider tokenCustomerProvider, Resources resources) {
         this.tokenCustomerProvider = tokenCustomerProvider;
+        this.resources = resources;
     }
 
     public InternalResponse create(AuthVerificationRequest req, HttpServletRequest request) throws Exception {
@@ -42,7 +44,7 @@ public class EverificationToken {
         if(!Utils.isNullOrEmpty(req.getRp_id())){
             RelyingParty rp = Resources.getRelyingPartyByName().get(RPName);
             if(rp == null) {
-                Resources.reloadRP();
+                resources.reloadRP();
                 rp = Resources.getRelyingPartyByName().get(RPName);
             }
             if(rp == null){

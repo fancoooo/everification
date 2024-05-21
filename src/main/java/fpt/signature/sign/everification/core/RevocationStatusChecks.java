@@ -5,6 +5,8 @@ import java.security.cert.X509CRL;
 import java.security.cert.X509Certificate;
 import java.util.Date;
 import java.util.List;
+
+import fpt.signature.sign.security.ApplicationContextProvider;
 import org.apache.log4j.Logger;
 import org.bouncycastle.cert.ocsp.BasicOCSPResp;
 import org.bouncycastle.cert.ocsp.RevokedStatus;
@@ -36,6 +38,7 @@ public class RevocationStatusChecks {
 
     private Boolean trueSigningTime = null;
 
+
     public RevocationStatusChecks(String lang, String entityBillCode, Boolean forceToCheckOcsp, Boolean forceToCheckCrl, Boolean trueSigningTime, int acceptableCrlDuration) {
         this.lang = lang;
         this.entityBillCode = entityBillCode;
@@ -43,9 +46,12 @@ public class RevocationStatusChecks {
         this.forceToCheckCrl = forceToCheckCrl;
         this.acceptableCrlDuration = acceptableCrlDuration;
         this.trueSigningTime = trueSigningTime;
+
+
     }
 
     public RevocationChecks validate(X509Certificate x509, Date signingTime) {
+        Resources resources = ApplicationContextProvider.getApplicationContext().getBean(Resources.class);
         RevocationChecks revocationResult = new RevocationChecks();
         String issuerKeyIdentifier = Crypto.getIssuerKeyIdentifier(x509);
         CertificationAuthority certificationAuthority = null;
@@ -64,7 +70,7 @@ public class RevocationStatusChecks {
                 }
             }
             if (certificationAuthority == null) {
-                Resources.reloadCertificationAuthorities();
+                resources.reloadCertificationAuthorities();
                 listOfCertificationAuthority = Resources.getListOfCertificationAuthority();
                 for (CertificationAuthority ca : listOfCertificationAuthority) {
                     if (ca.getCommonName().compareTo(CertificatePolicy.getCommonName(x509.getIssuerDN().toString())) == 0) {
@@ -80,7 +86,7 @@ public class RevocationStatusChecks {
         } else {
             certificationAuthority = (CertificationAuthority)Resources.getCertificationAuthoritiesKeyIdentifiers().get(issuerKeyIdentifier);
             if (certificationAuthority == null) {
-                Resources.reloadCertificationAuthorities();
+                resources.reloadCertificationAuthorities();
                 certificationAuthority = (CertificationAuthority)Resources.getCertificationAuthoritiesKeyIdentifiers().get(issuerKeyIdentifier);
             }
         }

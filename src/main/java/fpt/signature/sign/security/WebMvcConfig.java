@@ -48,6 +48,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
 //        if (!CollectionUtils.isEmpty(config.getAllowedOrigins()) || !CollectionUtils.isEmpty(config.getAllowedOriginPatterns())) {
 //            log.debug("Registering CORS filter");
         //config = config.setAllowedOrigins("*");
+        source.registerCorsConfiguration("/users/**", corsConfiguration);
         source.registerCorsConfiguration("/web/**", corsConfiguration);
         source.registerCorsConfiguration("/api/**", corsConfiguration);
         source.registerCorsConfiguration("/cms/**", corsConfiguration);

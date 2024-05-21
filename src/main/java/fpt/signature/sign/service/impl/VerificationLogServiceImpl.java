@@ -43,10 +43,10 @@ public class VerificationLogServiceImpl implements VerificationLogService {
             verificationLogDto.setCreatedDt(verificationLog.getCreatedDt());
             verificationLogDto.setModifiedDt(verificationLog.getModifiedDt());
             verificationLogDto.setRequestBillcode(verificationLog.getRequestBillcode());
-            verificationLogDto.setRelyingPartyId(verificationLog.getRelyingParty().getId());
-            verificationLogDto.setRelyingPartyName(verificationLog.getRelyingParty().getName());
+            verificationLogDto.setRelyingPartyId(verificationLog.getRelyingParty() != null ? verificationLog.getRelyingParty().getId() : null);
+            verificationLogDto.setRelyingPartyName(verificationLog.getRelyingParty() != null ? verificationLog.getRelyingParty().getName() : "");
             verificationLogDto.setRequestData(verificationLog.getRequestData());
-            verificationLogDto.setResponseCode("["+verificationLog.getResponseCode()+"] " + verificationLog.getResponseCode().getRemarkEn());
+            verificationLogDto.setResponseCode("["+verificationLog.getResponseCode().getName()+"] " + verificationLog.getResponseCode().getRemarkEn());
             verificationLogDto.setResponseData(verificationLog.getResponseData());
             verificationLogDto.setRequestIp(verificationLog.getRequestIp());
             verificationLogDto.setTimeRequest(Utils.convertDateToString(verificationLog.getTimeRequest(), "dd-MM-yyyy HH:mm:ss"));

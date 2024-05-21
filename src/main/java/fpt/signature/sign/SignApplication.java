@@ -24,7 +24,5 @@ public class SignApplication {
         LOG.info("|                       FPT Information System                  |");
         LOG.info("|                                                               |");
         LOG.info("----------------------------------------------------------------");
-
-        Resources.init();
     }
 }

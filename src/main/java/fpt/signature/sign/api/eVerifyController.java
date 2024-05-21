@@ -11,6 +11,7 @@ import fpt.signature.sign.general.Resources;
 import fpt.signature.sign.object.InternalResponse;
 import fpt.signature.sign.service.VerificationLogService;
 import fpt.signature.sign.utils.Utils;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -62,7 +63,7 @@ public class eVerifyController {
         verificationLog.setRequestData(Utils.cutoffBigDataInJson(Utils.toJSONString(req), Utils.KEY_TOO_LONG, Utils.KEY_SENSITIVE));
         verificationLog.setResponseData(Utils.cutoffBigDataInJson(Utils.toJSONString(res), Utils.KEY_TOO_LONG, Utils.KEY_SENSITIVE));
         verificationLog.setRequestIp(request.getRemoteAddr());
-        verificationLog.setResponseCode(Resources.getResponseCodes().get(resToken.getStatus() + ""));
+        verificationLog.setResponseCode(Resources.getResponseCodes().get(res.getStatus() + ""));
         verificationLog.setTimeRequest(time_request);
         verificationLog.setTimeResponse(time_response);
         verificationLogService.insertLog(verificationLog);
@@ -93,7 +94,7 @@ public class eVerifyController {
             verificationLog.setRequestData(Utils.cutoffBigDataInJson(Utils.toJSONString(req), Utils.KEY_TOO_LONG, Utils.KEY_SENSITIVE));
             verificationLog.setResponseData(Utils.cutoffBigDataInJson(Utils.toJSONString(res), Utils.KEY_TOO_LONG, Utils.KEY_SENSITIVE));
             verificationLog.setRequestIp(request.getRemoteAddr());
-            verificationLog.setResponseCode(Resources.getResponseCodes().get(resToken.getStatus() + ""));
+            verificationLog.setResponseCode(Resources.getResponseCodes().get(res.getStatus() + ""));
             verificationLog.setTimeRequest(time_request);
             verificationLog.setTimeResponse(time_response);
             verificationLogService.insertLog(verificationLog);
@@ -125,7 +126,7 @@ public class eVerifyController {
             verificationLog.setRequestData(Utils.cutoffBigDataInJson(Utils.toJSONString(req), Utils.KEY_TOO_LONG, Utils.KEY_SENSITIVE));
             verificationLog.setResponseData(Utils.cutoffBigDataInJson(Utils.toJSONString(res), Utils.KEY_TOO_LONG, Utils.KEY_SENSITIVE));
             verificationLog.setRequestIp(request.getRemoteAddr());
-            verificationLog.setResponseCode(Resources.getResponseCodes().get(resToken.getStatus() + ""));
+            verificationLog.setResponseCode(Resources.getResponseCodes().get(res.getStatus() + ""));
             verificationLog.setTimeRequest(time_request);
             verificationLog.setTimeResponse(time_response);
             verificationLogService.insertLog(verificationLog);

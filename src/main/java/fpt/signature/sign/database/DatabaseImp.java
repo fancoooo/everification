@@ -43,7 +43,7 @@ public class DatabaseImp implements Database{
             if (rs != null)
                 while (rs.next()) {
                     CertificationAuthority certificationAuthority = new CertificationAuthority();
-                    certificationAuthority.setCertificationAuthorityID(rs.getInt("ID"));
+                    certificationAuthority.setCertificationAuthorityID(rs.getLong("ID"));
                     certificationAuthority.setName(rs.getString("NAME"));
                     if (rs.getTimestamp("EFFECTIVE_DT") != null)
                         certificationAuthority.setEffectiveDate(new Date(rs.getTimestamp("EFFECTIVE_DT").getTime()));
@@ -101,7 +101,7 @@ public class DatabaseImp implements Database{
             if (rs != null)
                 while (rs.next()) {
                     RelyingParty relyingParty = new RelyingParty();
-                    relyingParty.setId(rs.getInt("ID"));
+                    relyingParty.setId((long) rs.getInt("ID"));
                     relyingParty.setName(rs.getString("NAME"));
 
 

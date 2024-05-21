@@ -29,6 +29,7 @@ import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathFactory;
 
 import fpt.signature.sign.everification.objects.*;
+import fpt.signature.sign.security.ApplicationContextProvider;
 import fpt.signature.sign.utils.CertificatePolicy;
 import fpt.signature.sign.utils.Crypto;
 import fpt.signature.sign.utils.MobileIDX500NameStyle;
@@ -94,6 +95,8 @@ public class XAdESVerification {
     }
 
     public VerificationInternalResponse verify(byte[] document, String billCode) {
+        CertPathValidation certPathValidation1 = ApplicationContextProvider.getApplicationContext().getBean(CertPathValidation.class);
+        TrustedCertificateChecks trustedCertificateChecks = ApplicationContextProvider.getApplicationContext().getBean(TrustedCertificateChecks.class);
         Document doc = null;
         ByteArrayInputStream bais = new ByteArrayInputStream(document);
         DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
@@ -214,16 +217,16 @@ public class XAdESVerification {
                     timeStampToken.validate((new JcaSimpleSignerInfoVerifierBuilder()).setProvider("BC").build(cert2));
                     tsaIntegrity = true;
                 } catch (Exception e) {
-                    e.printStackTrace();
                     LOG.error("Failed to verify timestamp signature. Details: " + Utils.printStackTrace(e));
                 }
-                tsaCertPathValidation = (new CertPathValidation()).validate(tsaX509CertList);
-                tsaTrustedCertificate = (new TrustedCertificateChecks()).validate(tsaX509CertList).isValid();
+
+                tsaCertPathValidation = certPathValidation1.validate(tsaX509CertList);
+                tsaTrustedCertificate = trustedCertificateChecks.validate(tsaX509CertList).isValid();
                 RevocationChecks tsaRevocationChecks = (new RevocationStatusChecks(this.lang, this.entityBillCode, null, null, Boolean.valueOf(true), this.acceptableCrlDuration)).validate(tsaX509CertList.get(0), signingTime);
-                finalResult = (finalResult && tsaCertPathValidation && tsaTrustedCertificate && tsaRevocationChecks.isSuccess());
-                tsaChecks.setIntegrity(Boolean.valueOf(tsaIntegrity));
-                tsaChecks.setCertPathValidation(Boolean.valueOf(tsaCertPathValidation));
-                tsaChecks.setTrustedCertificate(Boolean.valueOf(tsaTrustedCertificate));
+                finalResult = tsaCertPathValidation && tsaTrustedCertificate && tsaRevocationChecks.isSuccess();
+                tsaChecks.setIntegrity(tsaIntegrity);
+                tsaChecks.setCertPathValidation(tsaCertPathValidation);
+                tsaChecks.setTrustedCertificate(tsaTrustedCertificate);
                 tsaChecks.setRevocationChecks(tsaRevocationChecks);
             } else {
                 signingTime = getSigningTime(sigList.item(j),
@@ -237,8 +240,8 @@ public class XAdESVerification {
                         return new VerificationInternalResponse(5001);
                     }
             }
-            boolean certPathValidation = (new CertPathValidation()).validate(x509CertList);
-            Result trustedCheckResult = (new TrustedCertificateChecks()).validate(x509CertList);
+            boolean certPathValidation = certPathValidation1.validate(x509CertList);
+            Result trustedCheckResult = trustedCertificateChecks.validate(x509CertList);
             boolean trustedCertificate = trustedCheckResult.isValid();
             RevocationChecks revocationChecks = (new RevocationStatusChecks(this.lang, this.entityBillCode, null, null, Boolean.valueOf(true), this.acceptableCrlDuration)).validate(x509CertList.get(0), signingTime);
             ValidityChecks validityChecks = (new ValidityStatusChecks(this.lang)).validate(x509CertList.get(0), signingTime);
@@ -293,7 +296,7 @@ public class XAdESVerification {
                 validityResult.setValidFrom(signerCertificate.getNotBefore());
                 validityResult.setValidTo(signerCertificate.getNotAfter());
                 if (x509CertList.size() == 1)
-                    x509CertList = (new CertPathValidation()).buildPath(signerCertificate);
+                    x509CertList = certPathValidation1.buildPath(signerCertificate);
                 if (x509CertList.size() > 1) {
                     String issuerThumbprint = null;
                     String issuerSerialNumber = null;

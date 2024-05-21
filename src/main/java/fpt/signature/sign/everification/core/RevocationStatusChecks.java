@@ -51,7 +51,7 @@ public class RevocationStatusChecks {
         CertificationAuthority certificationAuthority = null;
         if (Utils.isNullOrEmpty(issuerKeyIdentifier)) {
 
-                LOG.warn("issuerKeyIdentifier of certificate " + CertificatePolicy.getCommonName(x509.getSubjectDN().toString() + " is NULL"));
+            LOG.warn("issuerKeyIdentifier of certificate " + CertificatePolicy.getCommonName(x509.getSubjectDN().toString() + " is NULL"));
             List<CertificationAuthority> listOfCertificationAuthority = Resources.getListOfCertificationAuthority();
             for (CertificationAuthority ca : listOfCertificationAuthority) {
                 if (ca.getCommonName().compareTo(CertificatePolicy.getCommonName(x509.getIssuerDN().toString())) == 0) {
@@ -85,8 +85,7 @@ public class RevocationStatusChecks {
             }
         }
         if (certificationAuthority == null) {
-
-                LOG.error("Cannot find CA with issuerKeyIdentifier: " + issuerKeyIdentifier);
+            LOG.error("Cannot find CA with issuerKeyIdentifier: " + issuerKeyIdentifier);
             revocationResult.setSuccess(false);
             revocationResult.setProtocol("NONE");
             revocationResult.setStatus("FAILED");
@@ -99,8 +98,7 @@ public class RevocationStatusChecks {
         if (this.forceToCheckCrl == null || this.forceToCheckOcsp == null) {
             CAProperties caProperties = certificationAuthority.getCaProperties();
             if (caProperties == null) {
-
-                    LOG.error("CAProperties is NULL. CA name: " + certificationAuthority.getName());
+                LOG.error("CAProperties is NULL. CA name: " + certificationAuthority.getName());
                 revocationResult.setSuccess(false);
                 revocationResult.setProtocol("NONE");
                 revocationResult.setStatus("FAILED");
@@ -111,13 +109,12 @@ public class RevocationStatusChecks {
             crlEnabled = caProperties.isCrlEnabled();
             ocspEnabled = caProperties.isOcspEnabled();
         } else {
-            crlEnabled = this.forceToCheckCrl.booleanValue();
-            ocspEnabled = this.forceToCheckOcsp.booleanValue();
+            crlEnabled = this.forceToCheckCrl;
+            ocspEnabled = this.forceToCheckOcsp;
         }
         X509Certificate issuerCert = Crypto.getX509Object(certificationAuthority.getPemCertificate());
         if (!crlEnabled && !ocspEnabled) {
-
-                LOG.info("No check revocation status");
+            LOG.info("No check revocation status");
             revocationResult.setSuccess(false);
             revocationResult.setProtocol("NONE");
             revocationResult.setStatus("NONE");
@@ -126,8 +123,7 @@ public class RevocationStatusChecks {
             return revocationResult;
         }
         if (crlEnabled && ocspEnabled) {
-
-                LOG.info("Certificate revocation against both CRL/OCSP");
+            LOG.info("Certificate revocation against both CRL/OCSP");
             OcspValidator ocspValidator = new OcspValidator(this.entityBillCode);
             ValidationResp ocspResp = ocspValidator.check(issuerCert, x509);
             if (ocspResp.getResponseCode() == 0) {

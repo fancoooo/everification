@@ -37,7 +37,7 @@ public class UsersToken {
         }
 
         if(!OK){
-            return new InternalResponse(1001, "Người dùng không tồn tại trong hệ thống", null, null, 0);
+            return new InternalResponse(1001, "Người dùng không tồn tại trong hệ thống", null, null, 0, null);
         }
 
         String PrivateKeyString = "-----BEGIN RSA PRIVATE KEY-----\n" +
@@ -81,7 +81,7 @@ public class UsersToken {
         signedJWT.sign((JWSSigner)rSASSASigner);
         String accessToken = signedJWT.serialize();
 
-        return new InternalResponse(0, "Thành công", accessToken, "Bearer", 3600);
+        return new InternalResponse(0, "Thành công", accessToken, "Bearer", 3600, null);
 
     }
 
@@ -101,16 +101,16 @@ public class UsersToken {
         SignedJWT signedJWT = SignedJWT.parse(accessToken);
         RSASSAVerifier rSASSAVerifier = new RSASSAVerifier((RSAPublicKey) publicKey);
         if (!signedJWT.verify((JWSVerifier)rSASSAVerifier)) {
-            return new InternalResponse(1002, "access_token is invalid.", null, null, 0);
+            return new InternalResponse(1002, "access_token is invalid.", null, null, 0, null);
         }
 
         if (!new Date().before(signedJWT.getJWTClaimsSet().getExpirationTime())) {
-            return new InternalResponse(1003, "access_token is expried.", null, null, 0);
+            return new InternalResponse(1003, "access_token is expried.", null, null, 0, null);
         }
 
         String subject = signedJWT.getJWTClaimsSet().getSubject();
 
-        return new InternalResponse(0, "Thành công", null, null, 0).setData(subject);
+        return new InternalResponse(0, "Thành công", null, null, 0, null);
 
 
     }

@@ -1,0 +1,18 @@
+jwt:
+  tse:
+    expiration:
+      access_token: 600000
+      refresh_token: 3600000
+  web_app:
+    expiration:
+      access_token: 600000
+      refresh_token: 3600000
+  issuer: fpt certification authority
+
+#server:
+#  ssl:
+#    key-store: classpath:ssl2/keystore.jks
+#    key-store-password: 12345678
+#    trust-store: classpath:ssl2/truststore.jks
+#    trust-store-password: 12345678
+#    client-auth: want

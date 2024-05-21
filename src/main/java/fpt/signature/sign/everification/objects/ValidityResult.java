@@ -6,6 +6,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Date;
+
+import com.google.gson.annotations.Expose;
 import fpt.signature.sign.everification.objects.TSAChecks;
 import fpt.signature.sign.everification.objects.VerificationDetails;
 
@@ -19,25 +21,25 @@ public class ValidityResult {
     public static final String STATUS_SIGNATURE_ERROR = "SIGNATURE_ERROR";
     @JsonIgnore
     private String sigingForm;
-
-    private String signatureID;
-
-    private String algorithm;
-
-    private Date signingTime;
+    @Expose
+    private String signature_name;
+    @Expose
+    private String signature_algorithm;
+    @Expose
+    private Date signing_time;
     @JsonIgnore
     private String signedData;
-
+    @Expose
     private Boolean success;
-
+    @Expose
     private VerificationDetails verificationDetails;
 
     private TSAChecks tsa;
-
+    @Expose
     private Boolean timestampEmbedded;
-
+    @Expose
     private String signer_cn;
-
+    @Expose
     private String issuer_cn;
 
     private String subject;
@@ -45,13 +47,13 @@ public class ValidityResult {
     private String issuer;
     @JsonIgnore
     private String thumbprint;
-
+    @Expose
     private String serialNumber;
     @JsonIgnore
     private String keyHash;
-
+    @Expose
     private Date validFrom;
-
+    @Expose
     private Date validTo;
 
     private String certificate;
@@ -65,7 +67,7 @@ public class ValidityResult {
     private String issuerSerialNumber;
     @JsonIgnore
     private String ltvDescription;
-    @JsonIgnore
+
     private String status = "SIGNATURE_EXISTING";
     @JsonIgnore
     private String signatureType;
@@ -87,29 +89,29 @@ public class ValidityResult {
 
     @JsonProperty("signature_name")
     public String getSignatureID() {
-        return this.signatureID;
+        return this.signature_name;
     }
 
     public void setSignatureID(String signatureID) {
-        this.signatureID = signatureID;
+        this.signature_name = signatureID;
     }
 
     @JsonProperty("signature_algorithm")
     public String getAlgorithm() {
-        return this.algorithm;
+        return this.signature_algorithm;
     }
 
     public void setAlgorithm(String algorithm) {
-        this.algorithm = algorithm;
+        this.signature_algorithm = algorithm;
     }
 
     @JsonProperty("signing_time")
     public Date getSigningTime() {
-        return this.signingTime;
+        return this.signing_time;
     }
 
     public void setSigningTime(Date signingTime) {
-        this.signingTime = signingTime;
+        this.signing_time = signingTime;
     }
 
     //@JsonProperty("signed_data")
@@ -265,7 +267,6 @@ public class ValidityResult {
     }
 
     //@JsonProperty("status")
-    @JsonIgnore
     public String getStatus() {
         return this.status;
     }

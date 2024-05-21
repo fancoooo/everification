@@ -49,7 +49,6 @@ public class OcspValidator {
 
     public ValidationResp check(X509Certificate issuerCert, X509Certificate cert) {
         if (Crypto.isRootCACertificate(cert)) {
-
                 LOG.debug("No check revocation status for RootCA (" + CertificatePolicy.getCommonName(cert.getSubjectDN().toString()) + ") certificate");
             return new ValidationResp(0, 0, null);
         }
@@ -97,53 +96,38 @@ public class OcspValidator {
             }
         }
         if (certificationAuthority == null) {
-
-                LOG.error("Cannot find CA with issuerKeyIdentifier: " + issuerKeyIdentifier);
+            LOG.error("Cannot find CA with issuerKeyIdentifier: " + issuerKeyIdentifier);
             return new ValidationResp(5001);
         }
         CAProperties caProperties = certificationAuthority.getCaProperties();
         if (caProperties == null) {
-
-                LOG.error("CAProperties is NULL. Cannot check OCSP");
+            LOG.error("CAProperties is NULL. Cannot check OCSP");
             return new ValidationResp(5001);
         }
-        Endpoint endpoint = caProperties.getOcsp().getEndpoint();
         OCSPResp ocspResponse = null;
-        if (endpoint.getType().equals("P2P")) {
-                LOG.debug("Call OCSP using EP_TYPE_P2P");
-            if (true) {
-                try {
-                    List<String> ocspUris = Crypto.getOcspUris(cert);
-                    if (Utils.isNullOrEmpty(ocspUris.get(0))) {
-                        LOG.debug("No OCSP URL found in certificate " + cert.getSubjectDN().toString() + ". This certificate could be SubCA");
-                        return new ValidationResp(5001);
-                    }
-                    OcspInvocation ocspInvocation = new OcspInvocation();
-                    ValidationReq validationReq = new ValidationReq();
-                    validationReq.setEntityName("VERIFICATION_ENTITY");
-                    validationReq.setRetry(certificationAuthority.getCaProperties().getOcsp().getRetry());
-                    validationReq.setOcspUris(ocspUris);
-                    OCSPReq request = generateOCSPRequest(issuerCert, cert.getSerialNumber());
-                    byte[] array = request.getEncoded();
-                    validationReq.setOcspRequestData(array);
-                    ValidationResp validationResp = ocspInvocation.call(validationReq);
-                    if (validationResp.getResponseCode() == 0) {
-                        ocspResponse = new OCSPResp(validationResp.getOcspResponseData());
-                    } else {
-                        LOG.error("Error while checking ocsp status due to connection (HTTP != 200)");
-                        return new ValidationResp(5001);
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    LOG.error("Error while generate OCSP request. Details: " + Utils.printStackTrace(e));
-                    return new ValidationResp(5001);
-                }
-            } else {
-                LOG.error("Cannot check ocsp due to Invalid P2P Credentials");
+        try {
+            List<String> ocspUris = Crypto.getOcspUris(cert);
+            if (Utils.isNullOrEmpty(ocspUris.get(0))) {
+                LOG.debug("No OCSP URL found in certificate " + cert.getSubjectDN().toString() + ". This certificate could be SubCA");
                 return new ValidationResp(5001);
             }
-        } else {
-            throw new NotImplementedException("Endpoint call hasn't implemented yet");
+            OcspInvocation ocspInvocation = new OcspInvocation();
+            ValidationReq validationReq = new ValidationReq();
+            validationReq.setRetry(certificationAuthority.getCaProperties().getOcsp().getRetry());
+            validationReq.setOcspUris(ocspUris);
+            OCSPReq request = generateOCSPRequest(issuerCert, cert.getSerialNumber());
+            byte[] array = request.getEncoded();
+            validationReq.setOcspRequestData(array);
+            ValidationResp validationResp = ocspInvocation.call(validationReq);
+            if (validationResp.getResponseCode() == 0) {
+                ocspResponse = new OCSPResp(validationResp.getOcspResponseData());
+            } else {
+                LOG.error("Error while checking ocsp status due to connection (HTTP != 200)");
+                return new ValidationResp(5001);
+            }
+        } catch (Exception e) {
+            LOG.error("Error while generate OCSP request. Details: " + Utils.printStackTrace(e));
+            return new ValidationResp(5001);
         }
         try {
             BasicOCSPResp basicResponse = (BasicOCSPResp)ocspResponse.getResponseObject();
@@ -196,15 +180,13 @@ public class OcspValidator {
                     validationResp.setOcspSignerCertHasHasNoCheckExtension(hasIdPkixOcspNoCheckExtension);
                     return validationResp;
                 } catch (Exception e) {
-                    e.printStackTrace();
                     LOG.error("Error while checking ocsp status. Details: " + Utils.printStackTrace(e));
                     return new ValidationResp(5001);
                 }
                 LOG.error("Error while checking ocsp status due to no ocsp response");
             return new ValidationResp(5001);
         } catch (Exception e) {
-            e.printStackTrace();
-                LOG.error("Error while checking ocsp status. Details: " + Utils.printStackTrace(e));
+            LOG.error("Error while checking ocsp status. Details: " + Utils.printStackTrace(e));
             return new ValidationResp(5001);
         }
     }

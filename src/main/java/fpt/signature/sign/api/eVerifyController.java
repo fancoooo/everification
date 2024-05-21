@@ -1,59 +1,40 @@
 package fpt.signature.sign.api;
 
-import fpt.signature.sign.api.request.SignPDFRequest;
-import fpt.signature.sign.api.request.VerifyPDFRequest;
-import fpt.signature.sign.api.response.BaseResponse;
-import fpt.signature.sign.everification.core.PAdESVerificationItext7;
-import fpt.signature.sign.everification.core.XAdESVerification;
+import fpt.signature.sign.auth.EverificationToken;
+import fpt.signature.sign.database.DatabaseImp;
+import fpt.signature.sign.domain.RelyingParty;
+import fpt.signature.sign.domain.VerificationLog;
+import fpt.signature.sign.everification.EverificationService;
 import fpt.signature.sign.everification.objects.RequestJSNObject;
 import fpt.signature.sign.everification.objects.VerificationInternalResponse;
-import fpt.signature.sign.license.LicenseManager;
-import fpt.signature.sign.object.VerifyResult;
-import fpt.signature.sign.service.IESignatureService;
-import fpt.signature.sign.service.IEVerifyService;
-import fpt.signature.sign.utils.Base64Utils;
+import fpt.signature.sign.general.Resources;
+import fpt.signature.sign.object.InternalResponse;
+import fpt.signature.sign.service.VerificationLogService;
 import fpt.signature.sign.utils.Utils;
-import org.bouncycastle.crypto.CryptoException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.Context;
-import java.util.List;
+import java.util.Calendar;
+import java.util.Date;
 
 @RestController
 @RequestMapping({"/api/everify"})
 public class eVerifyController {
-    @Autowired
-    private IEVerifyService eVerifyService;
 
-    @RequestMapping(
-            value = {"/verifypdf"},
-            method = {RequestMethod.POST},
-            headers = {"Content-Type=application/json"}
-    )
-    public BaseResponse signPdf(@RequestBody VerifyPDFRequest req) {
-        BaseResponse response = new BaseResponse();
+    private final EverificationToken everificationToken;
+
+    private final EverificationService everificationService;
+
+    private final VerificationLogService verificationLogService;
 
 
-        try {
-            response.setResponseCode(1);
-            response.setError(false);
-
-            List<VerifyResult> dataSigned = this.eVerifyService.verifyPdf(Base64Utils.base64Decode(req.getSigningFileData()));
-            response.setSignatureDetail(dataSigned);
-            response.setResponseMessage("Thành công");
-        }
-        catch (Exception var6) {
-            response.setResponseCode(0);
-            response.setError(true);
-            response.setResponseMessage("Lỗi khi verify : " + var6.getMessage());
-            var6.printStackTrace();
-        }
-        return response;
+    public eVerifyController(EverificationToken everificationToken, EverificationService everificationService, VerificationLogService verificationLogService) {
+        this.everificationToken = everificationToken;
+        this.everificationService = everificationService;
+        this.verificationLogService = verificationLogService;
     }
 
     @RequestMapping(
@@ -61,53 +42,94 @@ public class eVerifyController {
             method = {RequestMethod.POST},
             headers = {"Content-Type=application/json"}
     )
-    public VerificationInternalResponse verifyPAdES(@RequestBody RequestJSNObject req, @Context HttpServletRequest request){
-        try{
-            if(req == null){
-                return new VerificationInternalResponse(201, "Dữ liệu không hợp lệ");
-            }
+    public VerificationInternalResponse verifyPAdES(@RequestBody RequestJSNObject req, @Context HttpServletRequest request) throws Exception {
+        String function = "/api/everify/pdf";
+        Date time_request = Calendar.getInstance().getTime();
+        InternalResponse resToken = everificationToken.verify(request, function);
 
-            if(Utils.isNullOrEmpty(req.getDocument())){
-                return new VerificationInternalResponse(202, "Dữ liệu pdf không hợp lệ");
-            }
-
-            byte[] document = Base64Utils.base64Decode(req.getDocument());
-
-
-
-            return new PAdESVerificationItext7().verify(document, req.getPassword(), false, 0, null, null, null);
-        }catch (Exception ex){
-            return new VerificationInternalResponse(203, "UNKNOW EXCEPTION");
-        }
-
+        VerificationInternalResponse res = null;
+        if(resToken.getStatus() == 0){
+            res = everificationService.verifyPdf(req, resToken.getRp());
+        } else res = new VerificationInternalResponse(resToken.getStatus(), resToken.getMessage());
+        Date time_response = Calendar.getInstance().getTime();
+        VerificationLog verificationLog = new VerificationLog();
+        verificationLog.setFunctionName(function);
+        verificationLog.setRequestBillcode(req.getRequest_bill_code());
+        verificationLog.setResponseBillcode(res.getResponse_bill_code());
+        if(resToken.getRp() != null)
+            verificationLog.setRelyingParty(RelyingParty.builder().id((long) resToken.getRp().getId()).build());
+        else verificationLog.setRelyingParty(null);
+        verificationLog.setRequestData(Utils.cutoffBigDataInJson(Utils.toJSONString(req), Utils.KEY_TOO_LONG, Utils.KEY_SENSITIVE));
+        verificationLog.setResponseData(Utils.cutoffBigDataInJson(Utils.toJSONString(res), Utils.KEY_TOO_LONG, Utils.KEY_SENSITIVE));
+        verificationLog.setRequestIp(request.getRemoteAddr());
+        verificationLog.setResponseCode(Resources.getResponseCodes().get(resToken.getStatus() + ""));
+        verificationLog.setTimeRequest(time_request);
+        verificationLog.setTimeResponse(time_response);
+        verificationLogService.insertLog(verificationLog);
+        return res;
     }
-
-
     @RequestMapping(
             value = {"/xml"},
             method = {RequestMethod.POST},
             headers = {"Content-Type=application/json"}
     )
-    public VerificationInternalResponse verifyXades(@RequestBody RequestJSNObject req, @Context HttpServletRequest request){
-        try{
-            if(req == null){
-                return new VerificationInternalResponse(201, "Dữ liệu không hợp lệ");
-            }
-
-            if(Utils.isNullOrEmpty(req.getDocument())){
-                return new VerificationInternalResponse(202, "Dữ liệu pdf không hợp lệ");
-            }
-
-            byte[] document = Base64Utils.base64Decode(req.getDocument());
-
-
-
-            return new XAdESVerification().verify(document);
-        }catch (Exception ex){
-            return new VerificationInternalResponse(203, "UNKNOW EXCEPTION");
+    public VerificationInternalResponse verifyXades(@RequestBody RequestJSNObject req, @Context HttpServletRequest request) throws Exception {
+        String function = "/api/everify/xml";
+        Date time_request = Calendar.getInstance().getTime();
+        InternalResponse resToken = everificationToken.verify(request, function);
+        VerificationInternalResponse res = null;
+        if(resToken.getStatus() == 0){
+            res = everificationService.verifyXml(req, resToken.getRp());
+        } else res = new VerificationInternalResponse(resToken.getStatus(), resToken.getMessage());
+        Date time_response = Calendar.getInstance().getTime();
+        if(resToken.getRp() != null){
+            VerificationLog verificationLog = new VerificationLog();
+            verificationLog.setFunctionName(function);
+            verificationLog.setRequestBillcode(req.getRequest_bill_code());
+            verificationLog.setResponseBillcode(res.getResponse_bill_code());
+            if(resToken.getRp() != null)
+                verificationLog.setRelyingParty(RelyingParty.builder().id((long) resToken.getRp().getId()).build());
+            else verificationLog.setRelyingParty(null);
+            verificationLog.setRequestData(Utils.cutoffBigDataInJson(Utils.toJSONString(req), Utils.KEY_TOO_LONG, Utils.KEY_SENSITIVE));
+            verificationLog.setResponseData(Utils.cutoffBigDataInJson(Utils.toJSONString(res), Utils.KEY_TOO_LONG, Utils.KEY_SENSITIVE));
+            verificationLog.setRequestIp(request.getRemoteAddr());
+            verificationLog.setResponseCode(Resources.getResponseCodes().get(resToken.getStatus() + ""));
+            verificationLog.setTimeRequest(time_request);
+            verificationLog.setTimeResponse(time_response);
+            verificationLogService.insertLog(verificationLog);
         }
-
+        return res;
     }
-
-
+    @RequestMapping(
+            value = {"/office"},
+            method = {RequestMethod.POST},
+            headers = {"Content-Type=application/json"}
+    )
+    public VerificationInternalResponse verifyoffice(@RequestBody RequestJSNObject req, @Context HttpServletRequest request) throws Exception {
+        String function = "/api/everify/office";
+        Date time_request = Calendar.getInstance().getTime();
+        InternalResponse resToken = everificationToken.verify(request, function);
+        VerificationInternalResponse res = null;
+        if(resToken.getStatus() == 0){
+            res = everificationService.verifyOffice(req, resToken.getRp());
+        } else res = new VerificationInternalResponse(resToken.getStatus(), resToken.getMessage());
+        Date time_response = Calendar.getInstance().getTime();
+        if(resToken.getRp() != null){
+            VerificationLog verificationLog = new VerificationLog();
+            verificationLog.setFunctionName(function);
+            verificationLog.setRequestBillcode(req.getRequest_bill_code());
+            verificationLog.setResponseBillcode(res.getResponse_bill_code());
+            if(resToken.getRp() != null)
+                verificationLog.setRelyingParty(RelyingParty.builder().id((long) resToken.getRp().getId()).build());
+            else verificationLog.setRelyingParty(null);
+            verificationLog.setRequestData(Utils.cutoffBigDataInJson(Utils.toJSONString(req), Utils.KEY_TOO_LONG, Utils.KEY_SENSITIVE));
+            verificationLog.setResponseData(Utils.cutoffBigDataInJson(Utils.toJSONString(res), Utils.KEY_TOO_LONG, Utils.KEY_SENSITIVE));
+            verificationLog.setRequestIp(request.getRemoteAddr());
+            verificationLog.setResponseCode(Resources.getResponseCodes().get(resToken.getStatus() + ""));
+            verificationLog.setTimeRequest(time_request);
+            verificationLog.setTimeResponse(time_response);
+            verificationLogService.insertLog(verificationLog);
+        }
+        return res;
+    }
 }

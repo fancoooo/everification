@@ -427,7 +427,7 @@ public class CertificatePolicy {
         return result;
     }
 
-    public static List<String> getAltNames(X509Certificate certificate, Integer[] nameTypes) {
+        public static List<String> getAltNames(X509Certificate certificate, Integer[] nameTypes) {
         if (certificate == null)
             return null;
         List<String> names = new LinkedList<>();

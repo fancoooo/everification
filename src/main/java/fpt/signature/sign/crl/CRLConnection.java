@@ -19,12 +19,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.Set;
-import javax.annotation.Resource;
-import javax.xml.ws.WebServiceContext;
 
 public class CRLConnection implements ICRLConnection {
-    @Resource
-    private WebServiceContext context;
 
     public CRLCertStatus checkCerCRL(String cer) throws InvalidCerException, ConnectErrorException, NotFoundURL {
         return this.checkCerCRL((String)cer, (String)null, (Date)null);

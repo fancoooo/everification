@@ -1,22 +1,27 @@
 package fpt.signature.sign.object;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import fpt.signature.sign.general.RelyingParty;
+
+@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class InternalResponse {
     private int status;
 
-    private  String data;
+    private RelyingParty rp;
 
-    public String getData() {
-        return data;
+    @JsonIgnore
+    public RelyingParty getRp() {
+        return rp;
     }
 
-    public InternalResponse setData(String data) {
-        this.data = data;
-        return this;
+    public void setRp(RelyingParty rp) {
+        this.rp = rp;
     }
 
     private String message;
-
-
 
     private String access_token;
     private String token_type;
@@ -36,7 +41,7 @@ public class InternalResponse {
     public void setToken_type(String token_type) {
         this.token_type = token_type;
     }
-
+    @JsonInclude(JsonInclude.Include.NON_DEFAULT)
     public int getExpires_in() {
         return expires_in;
     }
@@ -47,13 +52,20 @@ public class InternalResponse {
 
     private int expires_in;
 
+    public InternalResponse(int status, String message, RelyingParty rp) {
+        this.status = status;
+        this.message = message;
+        this.rp = rp;
+    }
 
-    public InternalResponse(int status, String message, String access_token, String token_type, int expires_in) {
+
+    public InternalResponse(int status, String message, String access_token, String token_type, int expires_in, RelyingParty rp) {
         this.status = status;
         this.message = message;
         this.token_type = token_type;
         this.access_token = access_token;
         this.expires_in = expires_in;
+        this.rp = rp;
     }
 
 

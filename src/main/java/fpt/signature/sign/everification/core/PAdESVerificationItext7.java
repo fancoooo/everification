@@ -43,8 +43,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import javax.xml.bind.DatatypeConverter;
-
 import fpt.signature.sign.everification.objects.*;
+import fpt.signature.sign.general.RelyingParty;
 import org.apache.log4j.Logger;
 import org.bouncycastle.asn1.ocsp.OCSPObjectIdentifiers;
 import org.bouncycastle.asn1.x500.X500Name;
@@ -58,9 +58,6 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.tsp.TimeStampToken;
 import org.bouncycastle.util.Selector;
 import org.bouncycastle.util.Store;
-import fpt.signature.sign.everification.core.CertPathValidation;
-import fpt.signature.sign.everification.core.TrustedCertificateChecks;
-import fpt.signature.sign.everification.core.ValidityStatusChecks;
 import fpt.signature.sign.everification.objects.BasicOCSPRespComparable;
 import fpt.signature.sign.everification.objects.CertDataValidation;
 import fpt.signature.sign.everification.objects.X509CRLComparable;
@@ -107,7 +104,7 @@ public class PAdESVerificationItext7 {
     public PAdESVerificationItext7() {
         this.lang = "en";
         this.signerInformation = true;
-        this.signedDataRequired = true;
+        this.signedDataRequired = false;
     }
 
     public PAdESVerificationItext7(String lang, String entityBillCode, List<X509Certificate> registeredCerts, String serialNumber) {
@@ -117,7 +114,7 @@ public class PAdESVerificationItext7 {
         this.serialNumber = serialNumber;
     }
 
-    public VerificationInternalResponse verify(byte[] document, String password, boolean ltvEnabled, int addTimestampMode, String tsaUrl, String tsaUsername, String tsaPassword) {
+    public VerificationInternalResponse verify(byte[] document, String password, RelyingParty relyingParty, String billCode) {
         PdfReader reader = null;
         PdfDocument pdfDoc = null;
         SignatureUtil signatureUtil = null;
@@ -137,10 +134,9 @@ public class PAdESVerificationItext7 {
                 bais.close();
             }
         } catch (Exception e) {
-            e.printStackTrace();
             LOG.error("Invalid pdf format. Details: " + Utils.printStackTrace(e));
             closePdfReaderAndDocument(reader, pdfDoc);
-            return new VerificationInternalResponse(1001, "Invalid pdf format");
+            return new VerificationInternalResponse(2010, null, billCode);
         }
         signatureUtil = new SignatureUtil(pdfDoc);
         PdfDictionary dss = ((PdfDictionary)pdfDoc.getCatalog().getPdfObject()).getAsDictionary(PdfName.DSS);
@@ -149,12 +145,18 @@ public class PAdESVerificationItext7 {
         try {
             signatureNames = signatureUtil.getSignatureNames();
         } catch (Exception e) {
-            e.printStackTrace();
             LOG.error("Invalid pdf format. Details: " + Utils.printStackTrace(e));
-            return new VerificationInternalResponse(5010);
+            return new VerificationInternalResponse(2010);
         }
         int numberOfSignature = signatureNames.size();
         int fetchSignatureIndex = 0;
+        Thread gettingDelSignThread = null;
+        PdfSignatureManager pdfSignatureManager = null;
+        if(relyingParty.getVerificationProperties().isShowSignatureDelete() || relyingParty.getVerificationProperties().isShowSignatureError()) {
+            pdfSignatureManager = new PdfSignatureManager(document, password);
+            gettingDelSignThread = new Thread((Runnable)pdfSignatureManager);
+            gettingDelSignThread.start();
+        }
 
 
         List<Date> listOfSigingTime = new ArrayList<>();
@@ -187,9 +189,8 @@ public class PAdESVerificationItext7 {
                 if (pkcs7.verifySignatureIntegrityAndAuthenticity())
                     integrity = true;
             } catch (Exception e) {
-                e.printStackTrace();
                 LOG.error("Error while verifying pdf signature. Details: " + Utils.printStackTrace(e));
-                verificationDetails.setIntegrity(Boolean.valueOf(false));
+                verificationDetails.setIntegrity(Boolean.FALSE);
                 validityResult.setVerificationDetails(verificationDetails);
                 validityResults.add(validityResult);
                 continue;
@@ -207,9 +208,8 @@ public class PAdESVerificationItext7 {
                 try {
                     x509CertList = Crypto.sortX509Chain(x509CertList);
                 } catch (Exception e) {
-                    e.printStackTrace();
                     LOG.error("Error while sorting X509 certificate chain. Details: " + Utils.printStackTrace(e));
-                    verificationDetails.setIntegrity(Boolean.valueOf(false));
+                    verificationDetails.setIntegrity(Boolean.FALSE);
                     validityResult.setVerificationDetails(verificationDetails);
                     validityResults.add(validityResult);
                     continue;
@@ -218,7 +218,6 @@ public class PAdESVerificationItext7 {
             try {
                 timestapImprintResult = pkcs7.verifyTimestampImprint();
             } catch (Exception e) {
-                e.printStackTrace();
                 LOG.error("Error while verifying Timestamp Imprint. Details: " + Utils.printStackTrace(e));
                 verificationDetails.setIntegrity(Boolean.valueOf(false));
                 validityResult.setVerificationDetails(verificationDetails);
@@ -243,9 +242,8 @@ public class PAdESVerificationItext7 {
                     try {
                         tsaX509CertList.add(tsaX509CertificateConverter.getCertificate(holder));
                     } catch (CertificateException e) {
-                        e.printStackTrace();
                         LOG.error("Cannot get X509Certificate from X509CertificateHolder. Details: " + Utils.printStackTrace(e));
-                        verificationDetails.setIntegrity(Boolean.valueOf(false));
+                        verificationDetails.setIntegrity(Boolean.FALSE);
                         validityResult.setVerificationDetails(verificationDetails);
                         validityResults.add(validityResult);
                     }
@@ -253,9 +251,8 @@ public class PAdESVerificationItext7 {
                 try {
                     tsaX509CertList = Crypto.sortX509Chain(tsaX509CertList);
                 } catch (Exception e) {
-                    e.printStackTrace();
-                        LOG.error("Error while sorting TSA X509 certificate chain. Details: " + Utils.printStackTrace(e));
-                    verificationDetails.setIntegrity(Boolean.valueOf(false));
+                    LOG.error("Error while sorting TSA X509 certificate chain. Details: " + Utils.printStackTrace(e));
+                    verificationDetails.setIntegrity(Boolean.FALSE);
                     validityResult.setVerificationDetails(verificationDetails);
                     validityResults.add(validityResult);
                     continue;
@@ -270,9 +267,7 @@ public class PAdESVerificationItext7 {
                     timeStampToken.validate((new JcaSimpleSignerInfoVerifierBuilder()).setProvider("BC").build(cert2));
                     tsaIntegrity = true;
                 } catch (Exception e) {
-                    e.printStackTrace();
-
-                        LOG.error("Failed to verify timestamp signature. Details: " + Utils.printStackTrace(e));
+                    LOG.error("Failed to verify timestamp signature. Details: " + Utils.printStackTrace(e));
                 }
 
                 //tsaCertPathValidation = (new CertPathValidation()).validate(tsaX509CertList);
@@ -292,19 +287,18 @@ public class PAdESVerificationItext7 {
             if (x509CertList.size() == 1)
                 LOG.error("Error while building chain of signer certificate " + signerCertificate.getSubjectDN().toString() + ". It maybe issued by un-trusted CA");
             CertDataValidation certDataValidationOfSignerCert = isLTVSignature(name, signatureUtil.getSignature(name), dss, pkcs7, signingTime, x509CertList);
-            RevocationChecks revocationChecks = (new RevocationStatusChecks(this.lang, this.entityBillCode, null, null, Boolean.valueOf(true), this.acceptableCrlDuration)).validate(x509CertList.get(0), signingTime);
-            if (revocationChecks.getStatus().equals("FAILED") &&
-                    certDataValidationOfSignerCert.isValid()) {
+            RevocationChecks revocationChecks = (new RevocationStatusChecks(this.lang, this.entityBillCode, null, null, Boolean.TRUE, this.acceptableCrlDuration)).validate(x509CertList.get(0), signingTime);
+            if (revocationChecks.getStatus().equals("FAILED") && certDataValidationOfSignerCert.isValid()) {
                 LOG.error("Failed to check revocation status through CA's URL. Checking revocation status in LTV data");
                 boolean checkRevocationBaseOnLTVOCSPOK = false;
                 if (certDataValidationOfSignerCert.getBasicOCSPResp() != null) {
-                    revocationChecks = (new RevocationStatusChecks(this.lang, this.entityBillCode, null, null, Boolean.valueOf(true), this.acceptableCrlDuration)).validate(signerCertificate, signingTime, certDataValidationOfSignerCert.getBasicOCSPResp());
+                    revocationChecks = (new RevocationStatusChecks(this.lang, this.entityBillCode, null, null, Boolean.TRUE, this.acceptableCrlDuration)).validate(signerCertificate, signingTime, certDataValidationOfSignerCert.getBasicOCSPResp());
                     if (!revocationChecks.getStatus().equals("FAILED"))
                         checkRevocationBaseOnLTVOCSPOK = true;
                 }
                 if (!checkRevocationBaseOnLTVOCSPOK &&
                         certDataValidationOfSignerCert.getCrl() != null)
-                    revocationChecks = (new RevocationStatusChecks(this.lang, this.entityBillCode, null, null, Boolean.valueOf(true), this.acceptableCrlDuration)).validate(signerCertificate, signingTime, certDataValidationOfSignerCert.getCrl());
+                    revocationChecks = (new RevocationStatusChecks(this.lang, this.entityBillCode, null, null, Boolean.TRUE, this.acceptableCrlDuration)).validate(signerCertificate, signingTime, certDataValidationOfSignerCert.getCrl());
             }
             ValidityChecks validityChecks = (new ValidityStatusChecks(this.lang)).validate(x509CertList.get(0), signingTime);
             if (this.registeredCerts != null) {
@@ -313,7 +307,7 @@ public class PAdESVerificationItext7 {
                 registeredChecks = Boolean.FALSE;
             }
             if (!Utils.isNullOrEmpty(this.serialNumber))
-                registeredChecks = Boolean.valueOf((this.serialNumber.compareToIgnoreCase(DatatypeConverter.printHexBinary(((X509Certificate)x509CertList.get(0)).getSerialNumber().toByteArray())) == 0));
+                registeredChecks = this.serialNumber.compareToIgnoreCase(DatatypeConverter.printHexBinary(((X509Certificate) x509CertList.get(0)).getSerialNumber().toByteArray())) == 0;
             PdfDictionary dict = signatureUtil.getSignatureDictionary(name);
             TypeSig typeSig = checkSignatureType(name, dict);
             if ((typeSig.equals(TypeSig.SIGNATURE_NO_CHANGES_ALLOWED) || typeSig
@@ -322,9 +316,9 @@ public class PAdESVerificationItext7 {
                 LOG.debug("Signature " + name + " has type " + typeSig + " and it has been altered by next signature(s)");
                 integrity = false;
             }
-            verificationDetails.setIntegrity(Boolean.valueOf(integrity));
-            verificationDetails.setCertPathValidation(Boolean.valueOf(certPathValidation));
-            verificationDetails.setTrustedCertificate(Boolean.valueOf(trustedCertificate));
+            verificationDetails.setIntegrity(integrity);
+            verificationDetails.setCertPathValidation(certPathValidation);
+            verificationDetails.setTrustedCertificate(trustedCertificate);
             verificationDetails.setRegisteredChecks(registeredChecks);
             verificationDetails.setRevocationChecks(revocationChecks);
             verificationDetails.setValidityChecks(validityChecks);
@@ -334,9 +328,9 @@ public class PAdESVerificationItext7 {
 
             if (registeredChecks == null) {
                 //finalResult = (finalResult && integrity && certPathValidation && trustedCertificate && revocationChecks.isSuccess() && validityChecks.isSuccess());
-                finalResult = (finalResult && integrity  && trustedCertificate && revocationChecks.isSuccess() && validityChecks.isSuccess());
+                finalResult = integrity && trustedCertificate && revocationChecks.isSuccess() && validityChecks.isSuccess();
             } else {
-                finalResult = (finalResult && integrity && trustedCertificate && revocationChecks.isSuccess() && validityChecks.isSuccess() && registeredChecks.booleanValue());
+                finalResult = integrity && trustedCertificate && revocationChecks.isSuccess() && validityChecks.isSuccess() && registeredChecks.booleanValue();
             }
             validityResult.setSigingForm(signingForm);
             validityResult.setSignatureID(signatureID);
@@ -346,7 +340,7 @@ public class PAdESVerificationItext7 {
             listOfSigingTime.add(signingTime);
             if (this.signedDataRequired)
                 validityResult.setSignedData(signedData);
-            validityResult.setSuccess(Boolean.valueOf(finalResult));
+            validityResult.setSuccess(finalResult);
             validityResult.setVerificationDetails(verificationDetails);
             validityResult.setTsa(tsaChecks);
             if (this.signerInformation) {
@@ -358,9 +352,7 @@ public class PAdESVerificationItext7 {
                 try {
                     thumbprint = DatatypeConverter.printHexBinary(Crypto.hashData(signerCertificate.getEncoded(), "SHA-1")).toLowerCase();
                 } catch (CertificateEncodingException e) {
-                    e.printStackTrace();
-
-                        LOG.error("Cannot calculate certificate thumbprint. Details: " + Utils.printStackTrace(e));
+                    LOG.error("Cannot calculate certificate thumbprint. Details: " + Utils.printStackTrace(e));
                 }
                 String serialNumber = DatatypeConverter.printHexBinary(signerCertificate.getSerialNumber().toByteArray()).toLowerCase();
                 String keyHash = DatatypeConverter.printHexBinary(Crypto.hashData(signerCertificate.getPublicKey().getEncoded(), "SHA-1")).toLowerCase();
@@ -407,27 +399,214 @@ public class PAdESVerificationItext7 {
                     validityResult.setCertificate(certificateStr);
                     validityResult.setChains(chains);
                 } catch (CertificateEncodingException e) {
-
-                        LOG.error("Cannot get certificate base64 encoded. Details: " + Utils.printStackTrace(e));
-                    e.printStackTrace();
+                    LOG.error("Cannot get certificate base64 encoded. Details: " + Utils.printStackTrace(e));
                 }
             boolean setLtvOk = false;
             boolean ltvOcspEmbeddedInDocument = false;
             BasicOCSPResp ocspRespToBeEmbeddedInDocument = null;
             X509CRL crlRespToBeEmbeddedInDocument = null;
-
             validityResults.add(validityResult);
         }
-
-
-
+        if(relyingParty.getVerificationProperties().isShowSignatureDelete() || relyingParty.getVerificationProperties().isShowSignatureError()) {
+            List<ValidityResult> deletedSignatures = new ArrayList<>();
+            List<StoreSignature.DataSignature> errorSignatures = new ArrayList<>();
+            try {
+                assert gettingDelSignThread != null;
+                gettingDelSignThread.join();
+                errorSignatures = pdfSignatureManager.getErrorSignatures();
+                Map<PdfPKCS7, String> delSigs = pdfSignatureManager.getDeletedSignatures();
+                if (delSigs != null &&
+                        !delSigs.isEmpty())
+                    for (Map.Entry<PdfPKCS7, String> entry : delSigs.entrySet()) {
+                        String delSigName = entry.getValue();
+                        PdfPKCS7 delPkcs7 = entry.getKey();
+                        ValidityResult validityResult = new ValidityResult();
+                        validityResult.setSigingForm("CMS");
+                        validityResult.setSignatureID(delSigName);
+                        validityResult.setAlgorithm(delPkcs7.getHashAlgorithm());
+                        Date signingTime = null;
+                        if (delPkcs7.getSignDate() != null)
+                            signingTime = delPkcs7.getSignDate().getTime();
+                        TimeStampToken timeStampToken = delPkcs7.getTimeStampToken();
+                        if (timeStampToken != null)
+                            signingTime = timeStampToken.getTimeStampInfo().getGenTime();
+                        validityResult.setSigningTime(signingTime);
+                        try {
+                            validityResult.setSuccess(delPkcs7.verifySignatureIntegrityAndAuthenticity());
+                        } catch (GeneralSecurityException ex) {
+                            validityResult.setSuccess(Boolean.FALSE);
+                        }
+                        X509Certificate signerCertificate = delPkcs7.getSigningCertificate();
+                        X500Name x500SubjectName = new X500Name((X500NameStyle)new MobileIDX500NameStyle(), signerCertificate.getSubjectDN().toString());
+                        String subjectDn = x500SubjectName.toString();
+                        X500Name x500IssuerName = new X500Name((X500NameStyle)new MobileIDX500NameStyle(), signerCertificate.getIssuerDN().toString());
+                        String issuerDn = x500IssuerName.toString();
+                        String thumbprint = null;
+                        try {
+                            thumbprint = DatatypeConverter.printHexBinary(Crypto.hashData(signerCertificate.getEncoded(), "SHA-1")).toLowerCase();
+                        } catch (CertificateEncodingException e) {
+                            LOG.error("Cannot calculate certificate thumbprint. Details: " + Utils.printStackTrace(e));
+                        }
+                        String serialNumber = DatatypeConverter.printHexBinary(signerCertificate.getSerialNumber().toByteArray()).toLowerCase();
+                        String keyHash = DatatypeConverter.printHexBinary(Crypto.hashData(signerCertificate.getPublicKey().getEncoded(), "SHA-1")).toLowerCase();
+                        validityResult.setSubject(subjectDn);
+                        validityResult.setIssuer(issuerDn);
+                        validityResult.setThumbprint(thumbprint);
+                        validityResult.setSerialNumber(serialNumber);
+                        validityResult.setKeyHash(keyHash);
+                        validityResult.setValidFrom(signerCertificate.getNotBefore());
+                        validityResult.setValidTo(signerCertificate.getNotAfter());
+                        List<X509Certificate> x509CertList = new ArrayList<>();
+                        for (Certificate certificate : delPkcs7.getSignCertificateChain())
+                            x509CertList.add((X509Certificate)certificate);
+                        try {
+                            x509CertList = Crypto.sortX509Chain(x509CertList);
+                            if (x509CertList.size() > 1) {
+                                String issuerThumbprint = null;
+                                String issuerSerialNumber = null;
+                                String issuerKeyIdentifier = null;
+                                String rootCAKeyIdentifier = null;
+                                try {
+                                    issuerThumbprint = DatatypeConverter.printHexBinary(Crypto.hashData(((X509Certificate)x509CertList.get(1)).getEncoded(), "SHA-1")).toLowerCase();
+                                    issuerSerialNumber = DatatypeConverter.printHexBinary(((X509Certificate)x509CertList.get(1)).getSerialNumber().toByteArray()).toLowerCase();
+                                    issuerKeyIdentifier = Crypto.getSubjectKeyIdentifier(x509CertList.get(1));
+                                    if (Crypto.isRootCACertificate(x509CertList.get(x509CertList.size() - 1))) {
+                                        rootCAKeyIdentifier = Crypto.getSubjectKeyIdentifier(x509CertList.get(x509CertList.size() - 1));
+                                    } else  {
+                                        LOG.error("Bottom certificate in chain is not ROOT CA --> rootCAKeyIdentifier = NULL");
+                                    }
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+                                validityResult.setIssuerSerialNumber(issuerSerialNumber);
+                                validityResult.setIssuerThumbprint(issuerThumbprint);
+                                validityResult.setIssuerKeyIdentifier(issuerKeyIdentifier);
+                                validityResult.setRootCAKeyIdentifier(rootCAKeyIdentifier);
+                            }
+                        } catch (Exception exception) {}
+                        int size = pdfSignatureManager.getStorePages().getPages((String)(pdfSignatureManager.getStorage()).map_PKCS7_Name.get(delPkcs7)).getPageNumber().size();
+                        SignatureProperties[] signatureProperties = new SignatureProperties[size];
+                        for (int i = 0; i < size; i++) {
+                            SignatureProperties signatureProperty = new SignatureProperties(((Integer)pdfSignatureManager.getStorePages().getPages((String)(pdfSignatureManager.getStorage()).map_PKCS7_Name.get(delPkcs7)).getPageNumber().get(i)).intValue(), new fpt.signature.sign.everification.objects.Rectangle(Float.valueOf(pdfSignatureManager.getStorePages().getPages((String)(pdfSignatureManager.getStorage()).map_PKCS7_Name.get(delPkcs7)).getRect()[0]).floatValue(), Float.valueOf(pdfSignatureManager.getStorePages().getPages((String)(pdfSignatureManager.getStorage()).map_PKCS7_Name.get(delPkcs7)).getRect()[1]).floatValue(), Float.valueOf(pdfSignatureManager.getStorePages().getPages((String)(pdfSignatureManager.getStorage()).map_PKCS7_Name.get(delPkcs7)).getRect()[2]).floatValue(), Float.valueOf(pdfSignatureManager.getStorePages().getPages((String)(pdfSignatureManager.getStorage()).map_PKCS7_Name.get(delPkcs7)).getRect()[3]).floatValue()));
+                            signatureProperties[i] = signatureProperty;
+                        }
+                        VerificationDetails verificationDetails = new VerificationDetails();
+                        validityResult.setVerificationDetails(verificationDetails);
+                        validityResult.setStatus("SIGNATURE_DELETED");
+                        LOG.debug("Found deleted signature " + delSigName);
+                        deletedSignatures.add(validityResult);
+                    }
+            } catch (InterruptedException ex) {
+                LOG.error("Get deleted signature interrupted error", ex);
+            }
+            if(relyingParty.getVerificationProperties().isShowSignatureDelete())
+                for (ValidityResult vr : deletedSignatures) {
+                    if (!this.signerInformation) {
+                        vr.setSubject(null);
+                        vr.setIssuer(null);
+                        vr.setThumbprint(null);
+                        vr.setSerialNumber(null);
+                        vr.setIssuerThumbprint(null);
+                        vr.setIssuerSerialNumber(null);
+                        vr.setIssuerKeyIdentifier(null);
+                        vr.setRootCAKeyIdentifier(null);
+                        vr.setKeyHash(null);
+                        vr.setValidFrom(null);
+                        vr.setValidTo(null);
+                    }
+                    validityResults.add(vr);
+                }
+            if(relyingParty.getVerificationProperties().isShowSignatureError())
+                for (StoreSignature.DataSignature es : errorSignatures) {
+                    Map<String, String> v = es.getvField();
+                    if (v != null && !v.isEmpty()) {
+                        checkSignatureExistedAndRemoveIt(validityResults, (String)(pdfSignatureManager.getStorage()).map_Name_v.get(es));
+                        ValidityResult vr = new ValidityResult();
+                        vr.setSignatureID((String)(pdfSignatureManager.getStorage()).map_Name_v.get(es));
+                        vr.setSubject(v.get("Name"));
+                        vr.setStatus("SIGNATURE_ERROR");
+                        int size = pdfSignatureManager.getStorePages().getPages((String)(pdfSignatureManager.getStorage()).map_Name_v.get(es)).getPageNumber().size();
+                        SignatureProperties[] signatureProperties = new SignatureProperties[size];
+                        for (int i = 0; i < size; i++) {
+                            SignatureProperties signatureProperty = new SignatureProperties(((Integer)pdfSignatureManager.getStorePages().getPages((String)(pdfSignatureManager.getStorage()).map_Name_v.get(es)).getPageNumber().get(i)).intValue(), new fpt.signature.sign.everification.objects.Rectangle(Float.valueOf(pdfSignatureManager.getStorePages().getPages((String)(pdfSignatureManager.getStorage()).map_Name_v.get(es)).getRect()[0]).floatValue(), Float.valueOf(pdfSignatureManager.getStorePages().getPages((String)(pdfSignatureManager.getStorage()).map_Name_v.get(es)).getRect()[1]).floatValue(), Float.valueOf(pdfSignatureManager.getStorePages().getPages((String)(pdfSignatureManager.getStorage()).map_Name_v.get(es)).getRect()[2]).floatValue(), Float.valueOf(pdfSignatureManager.getStorePages().getPages((String)(pdfSignatureManager.getStorage()).map_Name_v.get(es)).getRect()[3]).floatValue()));
+                            signatureProperties[i] = signatureProperty;
+                        }
+                        VerificationDetails verificationDetails = new VerificationDetails();
+                        vr.setVerificationDetails(verificationDetails);
+                        validityResults.add(vr);
+                    }
+                }
+        }
 
         VerificationInternalResponse verificationInternalResponse = new VerificationInternalResponse();
         verificationInternalResponse.setStatus(0);
         verificationInternalResponse.setMessage("SUCCESSFULLY");
         verificationInternalResponse.setValidityResults(validityResults);
+        verificationInternalResponse.setResponse_bill_code(billCode);
+        if(relyingParty.getVerificationProperties().isShowAnntations()){
+            Annotation[] anntations = getAnnotations(pdfDoc, listOfSigingTime);
+            verificationInternalResponse.setAnntations(anntations);
+        }
         closePdfReaderAndDocument(reader, pdfDoc);
         return verificationInternalResponse;
+    }
+
+    private Annotation[] getAnnotations(PdfDocument pdfDoc, List<Date> listOfSigningTime) {
+        List<Annotation> annotations = new ArrayList<>();
+        int numberOfPages = pdfDoc.getNumberOfPages();
+        for (int i = 1; i <= numberOfPages; i++) {
+            try {
+                PdfDictionary pageDict = (PdfDictionary)pdfDoc.getPage(i).getPdfObject();
+                PdfArray annotArray = pageDict.getAsArray(PdfName.Annots);
+                PdfNumber pdfNumber = pageDict.getAsNumber(PdfName.Rotate);
+                float pageWidth = pdfDoc.getPage(i).getPageSize().getWidth();
+                float pageHeight = pdfDoc.getPage(i).getPageSize().getHeight();
+                int degree = 0;
+                if (pdfNumber != null)
+                    degree = pdfNumber.intValue();
+                if (annotArray != null)
+                    for (int j = 0; j < annotArray.size(); j++) {
+                        PdfDictionary curAnnot = annotArray.getAsDictionary(j);
+                        if (curAnnot.getAsName(PdfName.FT) == null &&
+                                curAnnot.getAsString(new PdfName("Subj")) != null) {
+                            PdfArray annotRect = curAnnot.getAsArray(PdfName.Rect);
+                            Annotation annotation = new Annotation();
+                            annotation.setName((curAnnot.getAsString(PdfName.T) != null) ? curAnnot.getAsString(PdfName.T).toUnicodeString() : null);
+                            annotation.setType(curAnnot.getAsString(new PdfName("Subj")).toUnicodeString());
+                            annotation.setPage(i);
+                            if (annotRect != null) {
+                                Rectangle rect = rotateRect(pageWidth, pageHeight, new Rectangle(annotRect
+
+                                        .getAsNumber(0).floatValue(), annotRect
+                                        .getAsNumber(1).floatValue(), annotRect
+                                        .getAsNumber(2).floatValue(), annotRect
+                                        .getAsNumber(3).floatValue()), degree);
+                                annotation.setRectangle(new fpt.signature.sign.everification.objects.Rectangle(rect
+                                        .getX(), rect
+                                        .getY(), rect
+                                        .getX() + rect.getWidth(), rect
+                                        .getY() + rect.getHeight()));
+                            }
+                            annotation.setContent((curAnnot.getAsString(PdfName.Contents) != null) ? curAnnot.getAsString(PdfName.Contents).toUnicodeString() : null);
+                            Date createdDt = getPdfDateObject((curAnnot.getAsString(PdfName.CreationDate) != null) ? curAnnot.getAsString(PdfName.CreationDate).toUnicodeString() : null);
+                            Date modifiedDt = getPdfDateObject((curAnnot.getAsString(PdfName.M) != null) ? curAnnot.getAsString(PdfName.M).toUnicodeString() : null);
+                            annotation.setCreatedDt(createdDt);
+                            annotation.setModifiedDt(modifiedDt);
+                            annotation.setStatus("ANNOTATIONS_CREATED");
+                            if (createdDt != null && modifiedDt != null)
+                                for (Date st : listOfSigningTime) {
+                                    if (createdDt.compareTo(st) < 0 && modifiedDt
+                                            .compareTo(st) > 0)
+                                        annotation.setStatus("ANNOTATIONS_MODIFIED");
+                                }
+                            annotations.add(annotation);
+                        }
+                    }
+            } catch (Exception e) {
+                LOG.error("Error while getting annotations. Details: " + Utils.printStackTrace(e));
+            }
+        }
+        return annotations.<Annotation>toArray(new Annotation[0]);
     }
 
 

@@ -300,6 +300,23 @@ public class Crypto {
         return secretKeySpec;
     }
 
+
+    public static PublicKey getPublicKeyFromString(String key) throws Exception {
+        byte[] encoded;
+        String publicKeyPEM = key;
+        publicKeyPEM = publicKeyPEM.replace("-----BEGIN PUBLIC KEY-----\n", "");
+        publicKeyPEM = publicKeyPEM.replace("-----END PUBLIC KEY-----", "");
+        publicKeyPEM = publicKeyPEM.replace("-----BEGIN RSA PUBLIC KEY-----\n", "");
+        publicKeyPEM = publicKeyPEM.replace("-----END RSA PUBLIC KEY-----", "");
+        publicKeyPEM = publicKeyPEM.replace("\n", "").replace("\r", "");
+
+        encoded = java.util.Base64.getDecoder().decode(publicKeyPEM);
+        KeyFactory kf = KeyFactory.getInstance("RSA");
+        X509EncodedKeySpec keySpec = new X509EncodedKeySpec(encoded);
+        PublicKey pub = (PublicKey) kf.generatePublic(keySpec);
+        return pub;
+    }
+
     public static byte[] wrapSecrectKey(String algWrapping, SecretKey wrappingKey, byte[] wrappingIv, Key keyToBeWrapped) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, InvalidAlgorithmParameterException, InvalidParameterSpecException, IllegalBlockSizeException, NoSuchProviderException {
         Cipher wrappingCipher = Cipher.getInstance(algWrapping);
         String[] list = algWrapping.split("/");
@@ -394,6 +411,29 @@ public class Crypto {
         sig.initSign(key);
         sig.update(data.getBytes());
         return DatatypeConverter.printBase64Binary(sig.sign());
+    }
+
+    public static PrivateKey getPrivateKeyFromString(String key) throws Exception {
+        byte[] encoded;
+        String privateKeyPEM = key;
+        privateKeyPEM = privateKeyPEM.replace("-----BEGIN PRIVATE KEY-----\n", "");
+        privateKeyPEM = privateKeyPEM.replace("-----END PRIVATE KEY-----", "");
+        privateKeyPEM = privateKeyPEM.replace("-----BEGIN RSA PRIVATE KEY-----\n", "");
+        privateKeyPEM = privateKeyPEM.replace("-----END RSA PRIVATE KEY-----", "");
+        privateKeyPEM = privateKeyPEM.replace("\n", "").replace("\r", "");
+
+        encoded = java.util.Base64.getDecoder().decode(privateKeyPEM);
+        KeyFactory kf = KeyFactory.getInstance("RSA");
+        PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(encoded);
+        PrivateKey privKey = (PrivateKey) kf.generatePrivate(keySpec);
+        return privKey;
+    }
+
+    public static String convertPemCertificate(String pem) {
+        pem = pem.replace("-----BEGIN CERTIFICATE-----\n", "");
+        pem = pem.replace("-----END CERTIFICATE-----", "");
+        pem = pem.replace("\n", "").replace("\r", "");
+        return pem;
     }
 
     public static PrivateKey getPrivateKeyFromString(String key, String mimeType) throws IOException, GeneralSecurityException {

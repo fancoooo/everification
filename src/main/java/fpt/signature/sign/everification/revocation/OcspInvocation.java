@@ -43,7 +43,6 @@ public class OcspInvocation {
                     validationResp.setResponseCode(0);
                     return validationResp;
                 } catch (Exception e) {
-                    e.printStackTrace();
                     LOG.error("Ocsp Connection failure. Then retry " + --ocspRetry + ". Details: " + Utils.printStackTrace(e));
                 }
             }
@@ -58,8 +57,8 @@ public class OcspInvocation {
         HttpURLConnection con = (HttpURLConnection)url.openConnection();
         con.setRequestProperty("Content-Type", "application/ocsp-request");
         con.setRequestProperty("Accept", "application/ocsp-response");
-        con.setConnectTimeout(5000);
-        con.setReadTimeout(5000);
+        con.setConnectTimeout(OCSP_CONNECT_TIMEOUT);
+        con.setReadTimeout(OCSP_READ_TIMEOUT);
         con.setDoOutput(true);
         OutputStream out = con.getOutputStream();
         DataOutputStream dataOut = new DataOutputStream(new BufferedOutputStream(out));

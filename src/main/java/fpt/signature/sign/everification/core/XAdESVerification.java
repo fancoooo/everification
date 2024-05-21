@@ -93,7 +93,7 @@ public class XAdESVerification {
         this.serialNumber = serialNumber;
     }
 
-    public VerificationInternalResponse verify(byte[] document) {
+    public VerificationInternalResponse verify(byte[] document, String billCode) {
         Document doc = null;
         ByteArrayInputStream bais = new ByteArrayInputStream(document);
         DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
@@ -103,7 +103,7 @@ public class XAdESVerification {
             doc = docBuilder.parse(bais);
         } catch (Exception e) {
             LOG.error("Cannot read XML document. Details: " + Utils.printStackTrace(e));
-            return new VerificationInternalResponse(5010);
+            return new VerificationInternalResponse(5010, "Cannot read XML document", billCode);
         }
         NodeList nodeList = null;
         XPathExpression expr = null;
@@ -114,7 +114,7 @@ public class XAdESVerification {
         } catch (Exception e) {
             e.printStackTrace();
             LOG.error("Cannot analyze signature namespace (id or Id). Details: " + Utils.printStackTrace(e));
-            return new VerificationInternalResponse(5001);
+            return new VerificationInternalResponse(5001, "Cannot analyze signature namespace (id or Id)", billCode);
         }
         int i;
         for (i = 0; i < nodeList.getLength(); i++) {
@@ -125,9 +125,8 @@ public class XAdESVerification {
             expr = xpath.compile("//*[@id]");
             nodeList = (NodeList)expr.evaluate(doc, XPathConstants.NODESET);
         } catch (Exception e) {
-            e.printStackTrace();
             LOG.error("Cannot analyze signature namespace (id or Id). Details: " + Utils.printStackTrace(e));
-            return new VerificationInternalResponse(5001);
+            return new VerificationInternalResponse(5001, "Cannot analyze signature namespace (id or Id)", billCode);
         }
         for (i = 0; i < nodeList.getLength(); i++) {
             Element elem = (Element)nodeList.item(i);
@@ -136,7 +135,7 @@ public class XAdESVerification {
         NodeList sigList = doc.getElementsByTagNameNS("http://www.w3.org/2000/09/xmldsig#", "Signature");
         XMLSignatureFactory fac = XMLSignatureFactory.getInstance("DOM");
         if (sigList.getLength() == 0)
-            return new VerificationInternalResponse(5011);
+            return new VerificationInternalResponse(0);
         List<ValidityResult> validityResults = new ArrayList<>();
         for (int j = 0; j < sigList.getLength(); j++) {
             X509Certificate signerCertificate = null;
@@ -155,7 +154,7 @@ public class XAdESVerification {
             DOMValidateContext valContext = new DOMValidateContext((KeySelector)keySelector, sigList.item(j));
             XMLSignature signature = null;
             try {
-                signature = fac.unmarshalXMLSignature(valContext);
+                    signature = fac.unmarshalXMLSignature(valContext);
                 integrity = signature.validate(valContext);
             } catch (Exception e) {
                 LOG.error("Cannot validate signature due to MarshalException/XMLSignatureException. Details: " + Utils.printStackTrace(e));
@@ -191,7 +190,6 @@ public class XAdESVerification {
                     try {
                         tsaX509CertList.add(tsaX509CertificateConverter.getCertificate(holder));
                     } catch (CertificateException e) {
-                        e.printStackTrace();
                         LOG.error("Cannot get X509Certificate from X509CertificateHolder. Details: " + Utils.printStackTrace(e));
                         verificationDetails.setIntegrity(Boolean.valueOf(false));
                         validityResult.setVerificationDetails(verificationDetails);
@@ -201,7 +199,6 @@ public class XAdESVerification {
                 try {
                     tsaX509CertList = Crypto.sortX509Chain(tsaX509CertList);
                 } catch (Exception e) {
-                    e.printStackTrace();
                     LOG.error("Error while sorting X509 certificate chain. Details: " + Utils.printStackTrace(e));
                     verificationDetails.setIntegrity(Boolean.valueOf(false));
                     validityResult.setVerificationDetails(verificationDetails);
@@ -282,7 +279,6 @@ public class XAdESVerification {
                 try {
                     thumbprint = DatatypeConverter.printHexBinary(Crypto.hashData(signerCertificate.getEncoded(), "SHA-1")).toLowerCase();
                 } catch (CertificateEncodingException e) {
-                    e.printStackTrace();
                     LOG.error("Cannot calculate certificate thumbprint. Details: " + Utils.printStackTrace(e));
                 }
                 String serialNumber = DatatypeConverter.printHexBinary(signerCertificate.getSerialNumber().toByteArray()).toLowerCase();
@@ -333,12 +329,13 @@ public class XAdESVerification {
                     validityResult.setChains(chains);
                 } catch (CertificateEncodingException e) {
                     LOG.error("Cannot get certificate base64 encoded. Details: " + Utils.printStackTrace(e));
-                    e.printStackTrace();
                 }
             validityResults.add(validityResult);
         }
         VerificationInternalResponse verificationInternalResponse = new VerificationInternalResponse();
         verificationInternalResponse.setStatus(0);
+        verificationInternalResponse.setMessage("SUCCESSFULLY");
+        verificationInternalResponse.setResponse_bill_code(billCode);
         verificationInternalResponse.setValidityResults(validityResults);
         return verificationInternalResponse;
     }
@@ -526,7 +523,7 @@ public class XAdESVerification {
                     } while(!(keyInfoStructure instanceof X509Data));
 
                     X509Data x509Data = (X509Data)keyInfoStructure;
-                    List<Object> x509DataList = x509Data.getContent();
+                    List x509DataList = x509Data.getContent();
                     Iterator var11 = x509DataList.iterator();
 
                     while(var11.hasNext()) {

@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.gson.annotations.Expose;
 import fpt.signature.sign.everification.objects.Rectangle;
 import fpt.signature.sign.everification.objects.RevocationChecks;
 import fpt.signature.sign.everification.objects.SignatureProperties;
@@ -13,19 +14,20 @@ import fpt.signature.sign.everification.objects.ValidityChecks;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class VerificationDetails {
+    @Expose
     private Boolean integrity;
     @JsonIgnore
     private Boolean certPathValidation;
-
+    @Expose
     private Boolean trustedCertificate;
     @JsonIgnore
     private Boolean registeredChecks;
 
     @JsonIgnore
     private boolean revocation;
-
-    private boolean validity;
-
+    @Expose
+    private boolean validityStatus;
+    @Expose
     private RevocationChecks revocationChecks;
 
     @JsonIgnore
@@ -103,12 +105,12 @@ public class VerificationDetails {
 
     @JsonProperty("validityStatus")
     public boolean getValidity() {
-        return validity;
+        return validityStatus;
     }
 
 
     public void setValidity(boolean validity) {
-        this.validity = validity;
+        this.validityStatus = validity;
     }
 }
 

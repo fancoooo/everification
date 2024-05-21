@@ -7,6 +7,8 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.security.cert.X509CRL;
 import java.util.Date;
+
+import com.google.gson.annotations.Expose;
 import org.bouncycastle.cert.ocsp.BasicOCSPResp;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -31,17 +33,16 @@ public class RevocationChecks {
     public static final String STATUS_FAILED = "FAILED";
 
     public static final String STATUS_NONE = "NONE";
-
+    @Expose
     private boolean success;
-
+    @Expose
     private String protocol;
-
+    @Expose
     private String status;
-
     private String statusAtPresent;
 
     private String description;
-
+    @Expose
     private Date revocationDt;
 
     @JsonIgnore

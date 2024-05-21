@@ -2,14 +2,15 @@ package fpt.signature.sign;
 
 import fpt.signature.sign.general.Resources;
 import org.apache.log4j.Logger;
+import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
-
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 
 
 @SpringBootApplication
-public class SignApplication extends SpringBootServletInitializer {
+@EnableConfigurationProperties
+public class SignApplication {
 
     private static final Logger LOG = Logger.getLogger(fpt.signature.sign.SignApplication.class);
     public static void main(String[] args) {
@@ -23,7 +24,7 @@ public class SignApplication extends SpringBootServletInitializer {
         LOG.info("|                       FPT Information System                  |");
         LOG.info("|                                                               |");
         LOG.info("----------------------------------------------------------------");
+
         Resources.init();
     }
-
 }

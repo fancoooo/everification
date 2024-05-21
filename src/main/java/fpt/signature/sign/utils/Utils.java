@@ -33,10 +33,13 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import fpt.signature.sign.core.X509CertificateInfo;
 import fpt.signature.sign.ex.ConnectErrorException;
 import fpt.signature.sign.ex.InvalidCerException;
 import fpt.signature.sign.ex.NotFoundURL;
+import fpt.signature.sign.general.FunctionAccessList;
+import fpt.signature.sign.general.IPRestrictionList;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.bouncycastle.asn1.ASN1InputStream;
@@ -51,6 +54,8 @@ import org.bouncycastle.util.encoders.Base64;
 import org.bouncycastle.util.encoders.Hex;
 import org.bouncycastle.x509.extension.AuthorityKeyIdentifierStructure;
 import org.bouncycastle.x509.extension.SubjectKeyIdentifierStructure;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -59,9 +64,29 @@ public class Utils {
     private static final String MIC_National_Root_CA = "MIC National Root CA";
     private static final String MIC_National_Root_CA_Thumprint = "MIC_National_Root_CA_Thumprint";
 
+    private static final org.apache.log4j.Logger LOG = org.apache.log4j.Logger.getLogger(Utils.class);
+
     private static final char[] hexCode = "0123456789ABCDEF".toCharArray();
 
-    private static final Gson gson = new Gson();
+    public static final String[] KEY_TOO_LONG = new String[] {
+            "face_scan", "front_image", "back_image", "audit_trail_image", "low_quality_audit_trail_image", "image", "document", "certificate", "frame", "sod_data",
+            "dg1", "dg2", "dg3", "dg14", "selfie", "pa_data", "ef_com_data", "ef_card_access_data", "dg15", "dg13",
+            "fingerprint" };
+
+    public static final String[] KEY_SENSITIVE = new String[] { "otp", "password" };
+
+    public static String generateTransactionId(String relyingParty, Date logDatetime) {
+        String billCode = null;
+        try {
+            SimpleDateFormat sdf = new SimpleDateFormat("yyMMddHHmmss");
+            sdf.setTimeZone(TimeZone.getTimeZone(System.getProperty("user.timezone")));
+            String dateTime = sdf.format(logDatetime);
+            billCode = relyingParty + "-" + dateTime + "-" + generateOneTimePassword(6);
+        } catch (Exception e) {
+            LOG.error("Error generating transaction ID", e);
+        }
+        return billCode;
+    }
 
 
     public static PrivateKey getPrivateKeyFromString(String key) throws Exception {
@@ -78,6 +103,21 @@ public class Utils {
         PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(encoded);
         PrivateKey privKey = (PrivateKey) kf.generatePrivate(keySpec);
         return privKey;
+    }
+
+    public static String generateBillCode(String module, Date logDatetime) {
+        String billCode = null;
+        try {
+            SimpleDateFormat sdf = new SimpleDateFormat("yyMMddHHmmss");
+            sdf.setTimeZone(TimeZone.getTimeZone(System.getProperty("user.timezone")));
+            String dateTime = sdf.format(logDatetime);
+            if(isNullOrEmpty(module))
+                billCode =  dateTime + "-" + generateOneTimePassword(12);
+            else billCode = module + "-" + dateTime + "-" + generateOneTimePassword(6);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return billCode;
     }
 
     public static PublicKey getPublicKeyFromString(String key) throws Exception {
@@ -687,7 +727,17 @@ public class Utils {
             } catch (Exception var4) {
             }
         }
+        return null;
+    }
 
+    public static String convertDateToString(Date date, String format) {
+        try{
+            SimpleDateFormat sdf = new SimpleDateFormat(format);
+            sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+            return sdf.format(date);
+        }catch (Exception e){
+            LOG.error("convertDateToString error with format:" + format, e);
+        }
         return null;
     }
 
@@ -743,6 +793,54 @@ public class Utils {
         return r.toString();
     }
 
+    public static boolean checkIPwithPattern(String ip, String pattern) {
+        if (pattern.length() == 1)
+            return true;
+        String c = pattern.substring(0, pattern.indexOf("*"));
+        String b = ip.substring(0, c.length());
+        if (c.compareToIgnoreCase(b) == 0)
+            return true;
+        return false;
+    }
+
+    public static boolean ipcheck(IPRestrictionList ipRestrictionList, String ipRequest) {
+        if (ipRestrictionList == null)
+            return true;
+        List<String> ipList = ipRestrictionList.getIpAddress();
+        if (ipList == null)
+            return true;
+        if (ipList.isEmpty())
+            return true;
+        if (ipList.contains("all"))
+            return true;
+        for (String ip : ipList) {
+            if (ip.contains("*")) {
+                if (Utils.checkIPwithPattern(ipRequest, ip))
+                    return true;
+                continue;
+            }
+            if (ip.equals(ipRequest))
+                return true;
+        }
+        return false;
+    }
+
+    public static boolean funccheck(FunctionAccessList functionAccessList, String function) {
+        if (functionAccessList == null)
+            return false;
+        List<String> funcList = functionAccessList.getFunctions();
+        if (funcList == null)
+            return false;
+        if (funcList.isEmpty())
+            return false;
+        if (funcList.contains("all"))
+            return true;
+        for (String func : funcList) {
+            if (func.equals(function))
+                return true;
+        }
+        return false;
+    }
     private static int hexToBin(char ch) {
         if ('0' <= ch && ch <= '9')
             return ch - 48;
@@ -751,6 +849,29 @@ public class Utils {
         if ('a' <= ch && ch <= 'f')
             return ch - 97 + 10;
         return -1;
+    }
+
+    public static String cutoffBigDataInJson(String json, String[] keysTooLongData, String[] keysSensitiveData) {
+        try {
+            if (isNullOrEmpty(json))
+                return json;
+            Object obj = (new JSONParser()).parse(json);
+            JSONObject jo = (JSONObject)obj;
+            for (String k : keysTooLongData) {
+                String value = (String)jo.get(k);
+                if (!isNullOrEmpty(value))
+                    jo.put(k, "{long string}");
+            }
+            for (String k : keysSensitiveData) {
+                String value = (String)jo.get(k);
+                if (!isNullOrEmpty(value))
+                    jo.put(k, "********");
+            }
+            return jo.toJSONString();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "{json cannot be parsed}";
+        }
     }
 
     public static byte[] genRandomArray(int size) throws NoSuchAlgorithmException, NoSuchProviderException {
@@ -776,6 +897,9 @@ public class Utils {
     }
 
     public static String toJSONString(Object obj){
+        Gson gson = new GsonBuilder()
+                .excludeFieldsWithoutExposeAnnotation()
+                .create();
         return gson.toJson(obj);
     }
 

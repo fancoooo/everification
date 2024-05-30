@@ -67,7 +67,7 @@ public class OfficeVerification {
                 Decryptor decryptor = Decryptor.getInstance(info);
                 if (!decryptor.verifyPassword(password)) {
                     LOG.error("Office password maybe incorrect");
-                    return new VerificationInternalResponse(5010, "Office password maybe incorrect", billCode);
+                    return new VerificationInternalResponse(2010, "Office password maybe incorrect", billCode);
                 }
                 InputStream dataStream = decryptor.getDataStream(filesystem);
                 pkg = OPCPackage.open(dataStream);
@@ -79,7 +79,7 @@ public class OfficeVerification {
             }
         } catch (Exception e) {
             LOG.error("Invalid office format. Details: " + Utils.printStackTrace(e));
-            return new VerificationInternalResponse(5010, "Invalid office format", billCode);
+            return new VerificationInternalResponse(2010, "Invalid office format", billCode);
         }
         try {
             SignatureConfig signatureConfig = new SignatureConfig();
@@ -116,7 +116,7 @@ public class OfficeVerification {
             return verificationInternalResponse;
         } catch (Exception e) {
             LOG.error("Error while verifying office document. Details: " + Utils.printStackTrace(e));
-            return new VerificationInternalResponse(5001);
+            return new VerificationInternalResponse(2003);
         }
     }
 

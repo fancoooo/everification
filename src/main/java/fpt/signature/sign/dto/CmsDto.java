@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.Serializable;
 
 public class CmsDto implements Serializable {
+    private String lang;
     @JsonProperty("userName")
     private String username;
     @JsonProperty("alias")
@@ -62,6 +63,14 @@ public class CmsDto implements Serializable {
     private Long certificateAuthorityID;
     private Long certificateTypeID;
     private String ejbcaEntityName;
+
+    public String getLang() {
+        return lang;
+    }
+
+    public void setLang(String lang) {
+        this.lang = lang;
+    }
 
     public Long getDuration() {
         return duration;

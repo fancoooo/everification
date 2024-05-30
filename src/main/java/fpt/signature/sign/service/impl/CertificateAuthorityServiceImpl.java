@@ -6,6 +6,7 @@ import fpt.signature.sign.dto.CMSResponse;
 import fpt.signature.sign.dto.CertificateAuthorityDto;
 import fpt.signature.sign.dto.CmsDto;
 import fpt.signature.sign.ex.CodeException;
+import fpt.signature.sign.general.Resources;
 import fpt.signature.sign.repository.CertificateAuthorityRepository;
 import fpt.signature.sign.service.CertificateAuthorityService;
 import fpt.signature.sign.utils.Crypto;
@@ -29,8 +30,11 @@ public class CertificateAuthorityServiceImpl implements CertificateAuthorityServ
 
     private final CertificateAuthorityRepository certificateAuthorityRepository;
 
-    public CertificateAuthorityServiceImpl(CertificateAuthorityRepository certificateAuthorityRepository) {
+    private final Resources resources;
+
+    public CertificateAuthorityServiceImpl(CertificateAuthorityRepository certificateAuthorityRepository, Resources resources) {
         this.certificateAuthorityRepository = certificateAuthorityRepository;
+        this.resources = resources;
     }
 
     @Override
@@ -53,7 +57,7 @@ public class CertificateAuthorityServiceImpl implements CertificateAuthorityServ
             certificateAuthorityDTOS.add(certificateAuthorityDTO);
 
         }
-        CMSResponse cmsResponse = new CMSResponse(0, "SUCCESS!", billCode, date);
+        CMSResponse cmsResponse = new CMSResponse(0, Utils.getMessageCode("", "0"), billCode, date);
         cmsResponse.setCertificate_authoritys(certificateAuthorityDTOS);
         return cmsResponse;
     }
@@ -89,12 +93,12 @@ public class CertificateAuthorityServiceImpl implements CertificateAuthorityServ
             certificateAuthority.setEffectiveDate(x509Certificate.getNotBefore().toInstant());
             certificateAuthority.setExpirationDate(x509Certificate.getNotAfter().toInstant());
             certificateAuthorityRepository.save(certificateAuthority);
-            CMSResponse cmsResponse = new CMSResponse(0, "SUCCESS!", billcode, date);
+            CMSResponse cmsResponse = new CMSResponse(0, Utils.getMessageCode(dto.getLang(), "0"), billcode, date);
             return cmsResponse;
         } catch (CodeException e) {
             return new CMSResponse(
                     e.getResponsecode(),
-                    "ERROR",
+                    Utils.getMessageCode(dto.getLang(), String.valueOf(e.getResponsecode())),
                     billcode,
                     date
             );
@@ -137,12 +141,13 @@ public class CertificateAuthorityServiceImpl implements CertificateAuthorityServ
             certificateAuthority.setEffectiveDate(x509Certificate.getNotBefore().toInstant());
             certificateAuthority.setExpirationDate(x509Certificate.getNotAfter().toInstant());
             certificateAuthorityRepository.save(certificateAuthority);
-            CMSResponse cmsResponse = new CMSResponse(0, "SUCCESS!", billcode, date);
+            resources.reloadCertificationAuthorities();
+            CMSResponse cmsResponse = new CMSResponse(0, Utils.getMessageCode(dto.getLang(), "0"), billcode, date);
             return cmsResponse;
         } catch (CodeException e) {
             return new CMSResponse(
                     e.getResponsecode(),
-                    "ERROR",
+                    Utils.getMessageCode(dto.getLang(), String.valueOf(e.getResponsecode())),
                     billcode,
                     date
             );

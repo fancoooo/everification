@@ -19,7 +19,16 @@ public class RequestJSNObject {
     @NotBlank(message = "not found")
     @NotNull
     private String password;
+    private String lang;
     private String request_bill_code;
+
+    public String getLang() {
+        return lang;
+    }
+
+    public void setLang(String lang) {
+        this.lang = lang;
+    }
 
     public String getRequest_bill_code() {
         return request_bill_code;

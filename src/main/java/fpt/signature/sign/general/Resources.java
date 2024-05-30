@@ -60,7 +60,7 @@ public class Resources {
     public void init() throws JsonProcessingException {
         DatabaseImp databaseImpl = new DatabaseImp();
         if (certificationAuthorities.isEmpty()) {
-            List<CertificateAuthority> listOfCA = certificateAuthorityRepository.findAll();
+            List<CertificateAuthority> listOfCA = certificateAuthorityRepository.findByEnabled(true);
             for (CertificateAuthority certificationAuthority : listOfCA) {
                 CertificationAuthority ca = new CertificationAuthority();
                 ca.setCertificationAuthorityID(certificationAuthority.getId());
@@ -82,7 +82,7 @@ public class Resources {
                 ca.setSubjectKeyIdentifier(Crypto.getSubjectKeyIdentifier(x509Certificate));
                 ca.setIssuerKeyIdentifier(Crypto.getIssuerKeyIdentifier(x509Certificate));
                 ca.setCommonName(CertificatePolicy.getCommonName(x509Certificate.getSubjectDN().toString()));
-                if (Utils.isNullOrEmpty(certificationAuthority.getProperties())) {
+                if (!Utils.isNullOrEmpty(certificationAuthority.getProperties())) {
                     CAProperties caProperties = (CAProperties)objectMapper.readValue(certificationAuthority.getProperties(), CAProperties.class);
                     ca.setCaProperties(caProperties);
                 }
@@ -148,13 +148,11 @@ public class Resources {
         LOG.info("Service is started up and ready to use!");
     }
 
-    public static void reloadCertificationAuthorities() {
-        DatabaseImp databaseImpl = new DatabaseImp();
-        CertificateAuthorityRepository certificateAuthorityRepository = (CertificateAuthorityRepository) ApplicationContextProvider.getApplicationContext().getBean("CertificateAuthorityRepository");
+    public void reloadCertificationAuthorities() {
         HashMap<Long, CertificationAuthority> newCertificationAuthorities = new HashMap<>();
         HashMap<String, CertificationAuthority> newCertificationAuthoritiesKeyIdentifiers = new HashMap<>();
         List<CertificationAuthority> newListOfCertificationAuthority = new ArrayList<>();
-        List<CertificateAuthority> listOfCA = certificateAuthorityRepository.findAll();
+        List<CertificateAuthority> listOfCA = certificateAuthorityRepository.findByEnabled(true);
         for (CertificateAuthority certificationAuthority : listOfCA) {
             CertificationAuthority ca = new CertificationAuthority();
             ca.setCertificationAuthorityID(certificationAuthority.getId());
@@ -176,6 +174,15 @@ public class Resources {
             ca.setSubjectKeyIdentifier(Crypto.getSubjectKeyIdentifier(x509Certificate));
             ca.setIssuerKeyIdentifier(Crypto.getIssuerKeyIdentifier(x509Certificate));
             ca.setCommonName(CertificatePolicy.getCommonName(x509Certificate.getSubjectDN().toString()));
+            if (!Utils.isNullOrEmpty(certificationAuthority.getProperties())) {
+                CAProperties caProperties = null;
+                try {
+                    caProperties = (CAProperties)objectMapper.readValue(certificationAuthority.getProperties(), CAProperties.class);
+                } catch (JsonProcessingException e) {
+                    throw new RuntimeException(e);
+                }
+                ca.setCaProperties(caProperties);
+            }
             newCertificationAuthorities.put(ca.getCertificationAuthorityID(), ca);
             newCertificationAuthoritiesKeyIdentifiers.put(ca.getSubjectKeyIdentifier(), ca);
             newListOfCertificationAuthority.add(ca);
@@ -185,8 +192,7 @@ public class Resources {
         listOfCertificationAuthority = newListOfCertificationAuthority;
     }
 
-    public void reloadRP() throws JsonProcessingException {
-        DatabaseImp databaseImpl = new DatabaseImp();
+    public void reloadRP() {
         HashMap<Long, RelyingParty> newRPByID = new HashMap<>();
         HashMap<String, RelyingParty> newRPByName = new HashMap<>();
         List<RelyingParty> newListOfRP = new ArrayList<>();
@@ -201,7 +207,11 @@ public class Resources {
                 String authPropertiesJson = rp.getSsl2Properties();
                 AuthPropertiesJSNObject authPropertiesJSNObject = null;
                 if (!Utils.isNullOrEmpty(authPropertiesJson)) {
-                    authPropertiesJSNObject = (AuthPropertiesJSNObject)objectMapper.readValue(authPropertiesJson, AuthPropertiesJSNObject.class);
+                    try {
+                        authPropertiesJSNObject = (AuthPropertiesJSNObject)objectMapper.readValue(authPropertiesJson, AuthPropertiesJSNObject.class);
+                    } catch (JsonProcessingException e) {
+                        throw new RuntimeException(e);
+                    }
                 } else {
                     authPropertiesJSNObject = new AuthPropertiesJSNObject();
                 }
@@ -213,21 +223,34 @@ public class Resources {
 
             String ipList = rp.getIpAccess();
             IPRestrictionList ipRestrictionList = null;
-            if (!Utils.isNullOrEmpty(ipList))
-                ipRestrictionList = (IPRestrictionList)objectMapper.readValue(ipList, IPRestrictionList.class);
+            if (!Utils.isNullOrEmpty(ipList)) {
+                try {
+                    ipRestrictionList = (IPRestrictionList)objectMapper.readValue(ipList, IPRestrictionList.class);
+                } catch (JsonProcessingException e) {
+                    throw new RuntimeException(e);
+                }
+            }
             relyingParty.setVerificationIPRestriction(ipRestrictionList);
 
             String funcList = rp.getFunctionAccess();
             FunctionAccessList funcAccessList = null;
             if(!Utils.isNullOrEmpty(funcList)){
-                funcAccessList = (FunctionAccessList) objectMapper.readValue(funcList, FunctionAccessList.class);
+                try {
+                    funcAccessList = (FunctionAccessList) objectMapper.readValue(funcList, FunctionAccessList.class);
+                } catch (JsonProcessingException e) {
+                    throw new RuntimeException(e);
+                }
             }
             relyingParty.setFunctionAccessList(funcAccessList);
 
             String properties = rp.getProperties();
             VerificationPropertiesJSNObject everificationProperties = null;
             if(!Utils.isNullOrEmpty(properties)){
-                everificationProperties = (VerificationPropertiesJSNObject) objectMapper.readValue(properties, VerificationPropertiesJSNObject.class);
+                try {
+                    everificationProperties = (VerificationPropertiesJSNObject) objectMapper.readValue(properties, VerificationPropertiesJSNObject.class);
+                } catch (JsonProcessingException e) {
+                    throw new RuntimeException(e);
+                }
             }
             relyingParty.setVerificationProperties(everificationProperties);
             newRPByID.put(relyingParty.getId(), relyingParty);

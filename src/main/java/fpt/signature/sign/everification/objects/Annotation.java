@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Date;
+
+import com.google.gson.annotations.Expose;
 import fpt.signature.sign.everification.objects.Rectangle;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -12,21 +14,21 @@ public class Annotation {
     public static final String STATUS_ANNOTATIONS_CREATED = "ANNOTATIONS_CREATED";
 
     public static final String STATUS_ANNOTATIONS_MODIFIED = "ANNOTATIONS_MODIFIED";
-
+    @Expose
     private String name;
-
+    @Expose
     private String type;
-
+    @Expose
     private int page;
-
+    @Expose
     private Rectangle rectangle;
-
+    @Expose
     private String content;
-
+    @Expose
     private String status;
-
+    @Expose
     private Date createdDt;
-
+    @Expose
     private Date modifiedDt;
 
     @JsonProperty("name")

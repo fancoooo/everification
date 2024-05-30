@@ -20,7 +20,8 @@ public class VerificationInternalResponse {
     private String response_bill_code;
     @Expose
     private List<ValidityResult> signatures;
-    private Annotation[] anntations;
+    @Expose
+    private Annotation[] annotations;
 
     public VerificationInternalResponse() {}
 
@@ -43,12 +44,12 @@ public class VerificationInternalResponse {
         this.signatures = signatures;
     }
 
-    public Annotation[] getAnntations() {
-        return anntations;
+    public Annotation[] getAnnotations() {
+        return annotations;
     }
 
-    public void setAnntations(Annotation[] anntations) {
-        this.anntations = anntations;
+    public void setAnnotations(Annotation[] annotations) {
+        this.annotations = annotations;
     }
 
     public VerificationInternalResponse(int status) {
@@ -78,7 +79,6 @@ public class VerificationInternalResponse {
     public void setMessage(String message) {
         this.message = message;
     }
-
 
     @JsonProperty("signatures")
     public List<ValidityResult> getValidityResults() {

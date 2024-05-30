@@ -33,7 +33,6 @@ public class ValidityResult {
     private Boolean success;
     @Expose
     private VerificationDetails verificationDetails;
-
     private TSAChecks tsa;
     @Expose
     private Boolean timestampEmbedded;
@@ -55,9 +54,7 @@ public class ValidityResult {
     private Date validFrom;
     @Expose
     private Date validTo;
-
     private String certificate;
-
     private String[] chains;
     @JsonIgnore
     private String certificateState;
@@ -67,11 +64,10 @@ public class ValidityResult {
     private String issuerSerialNumber;
     @JsonIgnore
     private String ltvDescription;
-
+    @Expose
     private String status = "SIGNATURE_EXISTING";
     @JsonIgnore
     private String signatureType;
-
     @JsonIgnore
     private String issuerKeyIdentifier;
     @JsonIgnore

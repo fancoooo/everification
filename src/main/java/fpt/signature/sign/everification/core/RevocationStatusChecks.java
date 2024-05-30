@@ -6,6 +6,7 @@ import java.security.cert.X509Certificate;
 import java.util.Date;
 import java.util.List;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import fpt.signature.sign.security.ApplicationContextProvider;
 import org.apache.log4j.Logger;
 import org.bouncycastle.cert.ocsp.BasicOCSPResp;
@@ -136,7 +137,7 @@ public class RevocationStatusChecks {
                 if (ocspResp.getRevocationStatus() == 1) {
                     if (signingTime != null) {
                         if (ocspResp.getRevocationDt().before(signingTime)) {
-                                if (this.trueSigningTime.booleanValue()) {
+                                if (this.trueSigningTime) {
                                     LOG.debug("Revocation time before signing time (" + signingTime + ") --> REVOKED (" + x509.getSubjectDN().toString() + ")");
                                 } else {
                                     LOG.debug("Revocation time before Now (" + signingTime + ") --> REVOKED (" + x509.getSubjectDN().toString() + ")");
@@ -153,7 +154,7 @@ public class RevocationStatusChecks {
                             return revocationResult;
                         }
 
-                            LOG.debug("Revocation time after signing time --> GOOD");
+                        LOG.debug("Revocation time after signing time --> GOOD");
                         revocationResult.setSuccess(true);
                         revocationResult.setProtocol("OCSP");
                         revocationResult.setStatus("GOOD");
@@ -165,7 +166,7 @@ public class RevocationStatusChecks {
                         revocationResult.setOcspSignerCertHasNoCheckExtension(ocspResp.isOcspSignerCertHasHasNoCheckExtension());
                         return revocationResult;
                     }
-                        LOG.debug("Signing time is NULL --> REVOKED");
+                    LOG.debug("Signing time is NULL --> REVOKED");
                     revocationResult.setSuccess(false);
                     revocationResult.setProtocol("OCSP");
                     revocationResult.setStatus("REVOKED_NO_SIGNING_TIME_CHECK");
@@ -212,18 +213,17 @@ public class RevocationStatusChecks {
             CrlValidator crlValidator1 = new CrlValidator(this.entityBillCode);
             ValidationResp validationResp1 = crlValidator1.check(issuerCert, x509);
             if (validationResp1.getResponseCode() == 0) {
-                if (!Crypto.isCACertificate(x509) && this.trueSigningTime
-                        .booleanValue()) {
+                if (!Crypto.isCACertificate(x509) && this.trueSigningTime) {
                     if (x509.getNotAfter().after(validationResp1.getCrlEffectiveDt()) || x509
                             .getNotAfter().equals(validationResp1.getCrlEffectiveDt())) {
-                        if (this.trueSigningTime.booleanValue()) {
+                        if (this.trueSigningTime) {
                             if (signingTime != null) {
                                 if (signingTime.before(validationResp1.getCrlEffectiveDt()) || signingTime
                                         .equals(validationResp1.getCrlEffectiveDt())) {
                                     if (validationResp1.getRevocationStatus() == 1) {
                                         if (signingTime != null) {
                                             if (validationResp1.getRevocationDt().before(signingTime)) {
-                                                    if (this.trueSigningTime.booleanValue()) {
+                                                    if (this.trueSigningTime) {
                                                         LOG.debug("Revocation time before signing time (" + signingTime + ") --> REVOKED (" + x509.getSubjectDN().toString() + ")");
                                                     } else {
                                                         LOG.debug("Revocation time before Now (" + signingTime + ") --> REVOKED (" + x509.getSubjectDN().toString() + ")");

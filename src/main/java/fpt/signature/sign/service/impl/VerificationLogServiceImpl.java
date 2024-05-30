@@ -1,15 +1,13 @@
 package fpt.signature.sign.service.impl;
 
-import fpt.signature.sign.domain.RelyingParty;
 import fpt.signature.sign.domain.UserCms;
 import fpt.signature.sign.domain.VerificationLog;
 import fpt.signature.sign.dto.CMSResponse;
-import fpt.signature.sign.dto.RelyingPartyDto;
 import fpt.signature.sign.dto.VerificationLogDto;
-import fpt.signature.sign.dto.mapper.VerificationLogMapper;
 import fpt.signature.sign.repository.VerificationLogRepository;
 import fpt.signature.sign.service.VerificationLogService;
 import fpt.signature.sign.utils.Utils;
+import org.springframework.data.domain.Sort;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import javax.servlet.http.HttpServletRequest;
@@ -34,7 +32,7 @@ public class VerificationLogServiceImpl implements VerificationLogService {
         Date date = new Date();
         String billCode = Utils.generateBillCode("webapp",date);
         UserCms user = (UserCms) request.getAttribute("user");
-        List<VerificationLog> verificationLogs = verificationLogRepository.findAll();
+        List<VerificationLog> verificationLogs = verificationLogRepository.findAll(Sort.by(Sort.Direction.DESC, "createdDt"));
         List<VerificationLogDto> verificationLogDtos = new ArrayList<>();
         for (VerificationLog verificationLog : verificationLogs) {
             VerificationLogDto verificationLogDto = new VerificationLogDto();
@@ -53,7 +51,7 @@ public class VerificationLogServiceImpl implements VerificationLogService {
             verificationLogDto.setTimeResponse(Utils.convertDateToString(verificationLog.getTimeResponse(), "dd-MM-yyyy HH:mm:ss"));
             verificationLogDtos.add(verificationLogDto);
         }
-        CMSResponse cmsResponse = new CMSResponse(0, "SUCCESS!", billCode, date);
+        CMSResponse cmsResponse = new CMSResponse(0, Utils.getMessageCode("", "0"), billCode, date);
         cmsResponse.setVerification_logs(verificationLogDtos);
         return cmsResponse;
     }

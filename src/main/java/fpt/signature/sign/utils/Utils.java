@@ -35,11 +35,13 @@ import javax.xml.transform.stream.StreamResult;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import fpt.signature.sign.core.X509CertificateInfo;
+import fpt.signature.sign.domain.ResponseCode;
 import fpt.signature.sign.ex.ConnectErrorException;
 import fpt.signature.sign.ex.InvalidCerException;
 import fpt.signature.sign.ex.NotFoundURL;
 import fpt.signature.sign.general.FunctionAccessList;
 import fpt.signature.sign.general.IPRestrictionList;
+import fpt.signature.sign.general.Resources;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.bouncycastle.asn1.ASN1InputStream;
@@ -103,6 +105,17 @@ public class Utils {
         PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(encoded);
         PrivateKey privKey = (PrivateKey) kf.generatePrivate(keySpec);
         return privKey;
+    }
+
+    public static String getMessageCode(String lang, String code) {
+        if(isNullOrEmpty(lang))
+            lang = "EN";
+        ResponseCode responseCode = Resources.getResponseCodes().get(code);
+        if(responseCode == null){
+            LOG.error("Get Message Code : " + code + " return null");
+            return "";
+        }
+        return lang.toUpperCase().trim().equals("VN") ? Resources.getResponseCodes().get(code).getRemark() : Resources.getResponseCodes().get(code).getRemarkEn();
     }
 
     public static String generateBillCode(String module, Date logDatetime) {
@@ -946,9 +959,7 @@ public class Utils {
     public static boolean isNullOrEmpty(String value) {
         if (value == null)
             return true;
-        if (value.compareTo("") == 0)
-            return true;
-        return false;
+        return value.trim().compareTo("") == 0;
     }
 
     public static String getPropertiesFile(String fileName) {

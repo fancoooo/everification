@@ -10,6 +10,7 @@ import fpt.signature.sign.dto.CmsDto;
 import fpt.signature.sign.dto.DataFileP12;
 import fpt.signature.sign.dto.RelyingPartyDto;
 import fpt.signature.sign.ex.CodeException;
+import fpt.signature.sign.general.Resources;
 import fpt.signature.sign.repository.RelyingPartyRepository;
 import fpt.signature.sign.repository.UserCmsRepository;
 import fpt.signature.sign.service.AuthenService;
@@ -36,11 +37,13 @@ public class RelyingPartyServiceImpl implements RelyingPartyService {
     private final Logger log = LoggerFactory.getLogger(RelyingPartyServiceImpl.class);
     private final RelyingPartyRepository relyingPartyRepository;
     private final ObjectMapper mapper = new ObjectMapper();
+    private final Resources resources;
 
     public RelyingPartyServiceImpl(
-            RelyingPartyRepository relyingPartyRepository
+            RelyingPartyRepository relyingPartyRepository, Resources resources
     ) {
         this.relyingPartyRepository = relyingPartyRepository;
+        this.resources = resources;
     }
 
     @Override
@@ -99,12 +102,13 @@ public class RelyingPartyServiceImpl implements RelyingPartyService {
             relyingParty.setProperties(dto.getProperties());
             relyingParty.setCreatedDate(date.toInstant());
             relyingPartyRepository.save(relyingParty);
-            CMSResponse cmsResponse = new CMSResponse(0, "SUCCESS!", billcode, date);
+            resources.reloadRP();
+            CMSResponse cmsResponse = new CMSResponse(0, Utils.getMessageCode(dto.getLang(), "0"), billcode, date);
             return cmsResponse;
         } catch (CodeException e) {
             return new CMSResponse(
                     e.getResponsecode(),
-                    "ERROR",
+                    Utils.getMessageCode(dto.getLang(), String.valueOf(e.getResponsecode())),
                     billcode,
                     date
             );
@@ -142,11 +146,12 @@ public class RelyingPartyServiceImpl implements RelyingPartyService {
             relyingParty.setProperties(dto.getProperties());
             relyingParty.setUpdatedDate(date.toInstant());
             relyingPartyRepository.save(relyingParty);
-            return new CMSResponse(0, "SUCCESS!", billcode, date);
+            resources.reloadRP();
+            return new CMSResponse(0, Utils.getMessageCode(dto.getLang(), "0"), billcode, date);
         } catch (CodeException e) {
             return new CMSResponse(
                     e.getResponsecode(),
-                    "ERROR",
+                    Utils.getMessageCode(dto.getLang(), String.valueOf(e.getResponsecode())),
                     billcode,
                     date
             );
@@ -172,7 +177,7 @@ public class RelyingPartyServiceImpl implements RelyingPartyService {
             relyingPartyInfo.setCreated_date(Date.from(rp.getCreatedDate()));
             relyingPartyInfos.add(relyingPartyInfo);
         }
-        CMSResponse cmsResponse = new CMSResponse(0, "SUCCESS!", billcode, date);
+        CMSResponse cmsResponse = new CMSResponse(0, Utils.getMessageCode("", "0"), billcode, date);
         cmsResponse.setRelying_partys(relyingPartyInfos);
         return cmsResponse;
     }

@@ -37,13 +37,13 @@ public class UserServiceImpl implements UserService {
             info.setId(userBO.getId());
             info.setFull_name(userBO.getName());
             info.setCreate_date(userBO.getCreatedDt());
-            CMSResponse cmsResponse = new CMSResponse(0, "SUCCESS!", billcode, date);
+            CMSResponse cmsResponse = new CMSResponse(0, Utils.getMessageCode("", "0"), billcode, date);
             cmsResponse.setUser_info(info);
             return cmsResponse;
         } catch (Exception var) {
             log.error(var.getMessage());
             Utils.printStackTrace(var);
-            return new CMSResponse(1003, "ERROR", billcode, date);
+            return new CMSResponse(2003, Utils.getMessageCode("", "2003"), billcode, date);
         }
     }
 
@@ -62,12 +62,12 @@ public class UserServiceImpl implements UserService {
             }
             user.setPassword(dto.getNewPassword());
             userCmsRepository.save(user);
-            CMSResponse cmsResponse = new CMSResponse(0, "SUCCESS!", billcode, date);
+            CMSResponse cmsResponse = new CMSResponse(0, Utils.getMessageCode("", "0"), billcode, date);
             return cmsResponse;
         } catch (CodeException e) {
             return new CMSResponse(
                     e.getResponsecode(),
-                    "ERROR",
+                    Utils.getMessageCode(dto.getLang(), String.valueOf(e.getResponsecode())),
                     billcode,
                     date
             );

@@ -1,7 +1,6 @@
 package fpt.signature.sign.api;
 
 import fpt.signature.sign.auth.EverificationToken;
-import fpt.signature.sign.database.DatabaseImp;
 import fpt.signature.sign.domain.RelyingParty;
 import fpt.signature.sign.domain.VerificationLog;
 import fpt.signature.sign.everification.EverificationService;
@@ -11,7 +10,7 @@ import fpt.signature.sign.general.Resources;
 import fpt.signature.sign.object.InternalResponse;
 import fpt.signature.sign.service.VerificationLogService;
 import fpt.signature.sign.utils.Utils;
-import org.springframework.context.annotation.DependsOn;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -23,6 +22,7 @@ import java.util.Date;
 
 @RestController
 @RequestMapping({"/api/everify"})
+@SecurityRequirement(name = "bearerAuth")
 public class eVerifyController {
 
     private final EverificationToken everificationToken;
@@ -67,6 +67,7 @@ public class eVerifyController {
         verificationLog.setTimeRequest(time_request);
         verificationLog.setTimeResponse(time_response);
         verificationLogService.insertLog(verificationLog);
+        res.setMessage(Utils.getMessageCode(req.getLang(), String.valueOf(res.getStatus())));
         return res;
     }
     @RequestMapping(
@@ -99,6 +100,7 @@ public class eVerifyController {
             verificationLog.setTimeResponse(time_response);
             verificationLogService.insertLog(verificationLog);
         }
+        res.setMessage(Utils.getMessageCode(req.getLang(), String.valueOf(res.getStatus())));
         return res;
     }
     @RequestMapping(
@@ -131,6 +133,7 @@ public class eVerifyController {
             verificationLog.setTimeResponse(time_response);
             verificationLogService.insertLog(verificationLog);
         }
+        res.setMessage(Utils.getMessageCode(req.getLang(), String.valueOf(res.getStatus())));
         return res;
     }
 }

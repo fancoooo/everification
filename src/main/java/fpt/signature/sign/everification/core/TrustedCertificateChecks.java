@@ -5,6 +5,7 @@ import java.security.cert.X509Certificate;
 import java.util.List;
 
 import fpt.signature.sign.everification.objects.Result;
+import fpt.signature.sign.security.ApplicationContextProvider;
 import org.apache.log4j.Logger;
 import fpt.signature.sign.everification.core.CertPathValidation;
 import fpt.signature.sign.everification.objects.CertificationAuthority;
@@ -17,10 +18,10 @@ public class TrustedCertificateChecks {
     private static final Logger LOG = Logger.getLogger(fpt.signature.sign.everification.core.TrustedCertificateChecks.class);
 
     public Result validate(List<X509Certificate> chain) {
+        Resources resources = ApplicationContextProvider.getApplicationContext().getBean(Resources.class);
         List<X509Certificate> newChain = chain;
         if (newChain == null) {
-
-                LOG.error("Signature has no chain --> Trusted Certificate Checks result false");
+            LOG.error("Signature has no chain --> Trusted Certificate Checks result false");
             return new Result(false, chain);
         }
         X509Certificate x509 = newChain.get(0);
@@ -45,7 +46,7 @@ public class TrustedCertificateChecks {
             }
             CertificationAuthority certificationAuthority = (CertificationAuthority)Resources.getCertificationAuthoritiesKeyIdentifiers().get(subjectKeyIdentitider);
             if (certificationAuthority == null) {
-                Resources.reloadCertificationAuthorities();
+                resources.reloadCertificationAuthorities();
                 certificationAuthority = (CertificationAuthority)Resources.getCertificationAuthoritiesKeyIdentifiers().get(subjectKeyIdentitider);
                 if (certificationAuthority == null)
                     return new Result(false, chain);

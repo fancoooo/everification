@@ -159,11 +159,7 @@ public class PAdESVerificationItext7 {
         }
 
 
-        List<Date> listOfSigingTime = new ArrayList<>();
-        if (signatureNames.isEmpty()) {
-            closePdfReaderAndDocument(reader, pdfDoc);
-            return new VerificationInternalResponse(0);
-        }
+        List<Date> listOfSigningTime = new ArrayList<>();
         List<ValidityResult> validityResults = new ArrayList<>();
         boolean isTsp = false;
         boolean doLTV = false;
@@ -202,6 +198,7 @@ public class PAdESVerificationItext7 {
             String algorithm = pkcs7.getHashAlgorithm();
             signerCertificate = pkcs7.getSigningCertificate();
             List<X509Certificate> x509CertList = new ArrayList<>();
+            // lấy thông tin cert chain trong chữ ký số bao gồm signerCert, issuerCert, rootCert
             for (Certificate certificate : pkcs7.getSignCertificateChain())
                 x509CertList.add((X509Certificate)certificate);
             if (x509CertList.size() > 1)
@@ -225,6 +222,7 @@ public class PAdESVerificationItext7 {
                 continue;
             }
             validityResult.setTimestampEmbedded(false);
+            // xử lý lấy thông tin của chữ ký số timestamp
             if (timestapImprintResult) {
                 validityResult.setTimestampEmbedded(true);
                 tsaUsed = true;
@@ -278,14 +276,17 @@ public class PAdESVerificationItext7 {
                 //tsaChecks.setCertPathValidation(Boolean.valueOf(tsaCertPathValidation));
                 //tsaChecks.setTrustedCertificate(Boolean.valueOf(tsaTrustedCertificate));
                 //tsaChecks.setRevocationChecks(tsaRevocationChecks);
-            }
+            } // end if xử lý lấy thông tin của chữ ký số timestamp
 
+            // kiểm tra xem đúng là cert path hợp lệ không
             boolean certPathValidation = (new CertPathValidation()).validate(x509CertList);
+            // kiểm tra xem có nằm trong danh sách CA tin cậy hay không
             Result trustedCheckResult = (new TrustedCertificateChecks()).validate(x509CertList);
             boolean trustedCertificate = trustedCheckResult.isValid();
             x509CertList = trustedCheckResult.getBuiltChain();
             if (x509CertList.size() == 1)
                 LOG.error("Error while building chain of signer certificate " + signerCertificate.getSubjectDN().toString() + ". It maybe issued by un-trusted CA");
+            // kiểm tra xem chữ ký số có được nhúng LTV hay không
             CertDataValidation certDataValidationOfSignerCert = isLTVSignature(name, signatureUtil.getSignature(name), dss, pkcs7, signingTime, x509CertList);
             RevocationChecks revocationChecks = (new RevocationStatusChecks(this.lang, this.entityBillCode, null, null, Boolean.TRUE, this.acceptableCrlDuration)).validate(x509CertList.get(0), signingTime);
             if (revocationChecks.getStatus().equals("FAILED") && certDataValidationOfSignerCert.isValid()) {
@@ -302,7 +303,7 @@ public class PAdESVerificationItext7 {
             }
             ValidityChecks validityChecks = (new ValidityStatusChecks(this.lang)).validate(x509CertList.get(0), signingTime);
             if (this.registeredCerts != null) {
-                registeredChecks = Boolean.valueOf(this.registeredCerts.contains(x509CertList.get(0)));
+                registeredChecks = this.registeredCerts.contains(x509CertList.get(0));
             } else if (this.registeredConstraint) {
                 registeredChecks = Boolean.FALSE;
             }
@@ -337,7 +338,7 @@ public class PAdESVerificationItext7 {
             validityResult.setAlgorithm(algorithm);
             validityResult.setSigningTime(signingTime);
             validityResult.setSignatureType(typeSig.name());
-            listOfSigingTime.add(signingTime);
+            listOfSigningTime.add(signingTime);
             if (this.signedDataRequired)
                 validityResult.setSignedData(signedData);
             validityResult.setSuccess(finalResult);
@@ -543,9 +544,9 @@ public class PAdESVerificationItext7 {
         verificationInternalResponse.setMessage("SUCCESSFULLY");
         verificationInternalResponse.setValidityResults(validityResults);
         verificationInternalResponse.setResponse_bill_code(billCode);
-        if(relyingParty.getVerificationProperties().isShowAnntations()){
-            Annotation[] anntations = getAnnotations(pdfDoc, listOfSigingTime);
-            verificationInternalResponse.setAnntations(anntations);
+        if(relyingParty.getVerificationProperties().isShowAnnotations()){
+            Annotation[] annotations = getAnnotations(pdfDoc, listOfSigningTime);
+            verificationInternalResponse.setAnnotations(annotations);
         }
         closePdfReaderAndDocument(reader, pdfDoc);
         return verificationInternalResponse;
@@ -567,12 +568,17 @@ public class PAdESVerificationItext7 {
                 if (annotArray != null)
                     for (int j = 0; j < annotArray.size(); j++) {
                         PdfDictionary curAnnot = annotArray.getAsDictionary(j);
-                        if (curAnnot.getAsName(PdfName.FT) == null &&
-                                curAnnot.getAsString(new PdfName("Subj")) != null) {
+                        String subType = curAnnot.getAsName(PdfName.Subtype).getValue();
+                        if (curAnnot.getAsName(PdfName.FT) == null && (curAnnot.getAsString(new PdfName("Subj")) != null || "Stamp"
+                                .equals(subType))) {
                             PdfArray annotRect = curAnnot.getAsArray(PdfName.Rect);
                             Annotation annotation = new Annotation();
                             annotation.setName((curAnnot.getAsString(PdfName.T) != null) ? curAnnot.getAsString(PdfName.T).toUnicodeString() : null);
-                            annotation.setType(curAnnot.getAsString(new PdfName("Subj")).toUnicodeString());
+                            if (curAnnot.getAsString(new PdfName("Subj")) != null) {
+                                annotation.setType(curAnnot.getAsString(new PdfName("Subj")).toUnicodeString());
+                            } else {
+                                annotation.setType(subType);
+                            }
                             annotation.setPage(i);
                             if (annotRect != null) {
                                 Rectangle rect = rotateRect(pageWidth, pageHeight, new Rectangle(annotRect

@@ -95,8 +95,6 @@ public class XAdESVerification {
     }
 
     public VerificationInternalResponse verify(byte[] document, String billCode) {
-        CertPathValidation certPathValidation1 = ApplicationContextProvider.getApplicationContext().getBean(CertPathValidation.class);
-        TrustedCertificateChecks trustedCertificateChecks = ApplicationContextProvider.getApplicationContext().getBean(TrustedCertificateChecks.class);
         Document doc = null;
         ByteArrayInputStream bais = new ByteArrayInputStream(document);
         DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
@@ -106,7 +104,7 @@ public class XAdESVerification {
             doc = docBuilder.parse(bais);
         } catch (Exception e) {
             LOG.error("Cannot read XML document. Details: " + Utils.printStackTrace(e));
-            return new VerificationInternalResponse(5010, "Cannot read XML document", billCode);
+            return new VerificationInternalResponse(2010, "Cannot read XML document", billCode);
         }
         NodeList nodeList = null;
         XPathExpression expr = null;
@@ -115,9 +113,8 @@ public class XAdESVerification {
             expr = xpath.compile("//*[@Id]");
             nodeList = (NodeList)expr.evaluate(doc, XPathConstants.NODESET);
         } catch (Exception e) {
-            e.printStackTrace();
             LOG.error("Cannot analyze signature namespace (id or Id). Details: " + Utils.printStackTrace(e));
-            return new VerificationInternalResponse(5001, "Cannot analyze signature namespace (id or Id)", billCode);
+            return new VerificationInternalResponse(2003, "Cannot analyze signature namespace (id or Id)", billCode);
         }
         int i;
         for (i = 0; i < nodeList.getLength(); i++) {
@@ -129,7 +126,7 @@ public class XAdESVerification {
             nodeList = (NodeList)expr.evaluate(doc, XPathConstants.NODESET);
         } catch (Exception e) {
             LOG.error("Cannot analyze signature namespace (id or Id). Details: " + Utils.printStackTrace(e));
-            return new VerificationInternalResponse(5001, "Cannot analyze signature namespace (id or Id)", billCode);
+            return new VerificationInternalResponse(2003, "Cannot analyze signature namespace (id or Id)", billCode);
         }
         for (i = 0; i < nodeList.getLength(); i++) {
             Element elem = (Element)nodeList.item(i);
@@ -161,7 +158,7 @@ public class XAdESVerification {
                 integrity = signature.validate(valContext);
             } catch (Exception e) {
                 LOG.error("Cannot validate signature due to MarshalException/XMLSignatureException. Details: " + Utils.printStackTrace(e));
-                verificationDetails.setIntegrity(Boolean.valueOf(false));
+                verificationDetails.setIntegrity(Boolean.FALSE);
                 validityResult.setVerificationDetails(verificationDetails);
                 validityResults.add(validityResult);
             }
@@ -194,7 +191,7 @@ public class XAdESVerification {
                         tsaX509CertList.add(tsaX509CertificateConverter.getCertificate(holder));
                     } catch (CertificateException e) {
                         LOG.error("Cannot get X509Certificate from X509CertificateHolder. Details: " + Utils.printStackTrace(e));
-                        verificationDetails.setIntegrity(Boolean.valueOf(false));
+                        verificationDetails.setIntegrity(Boolean.FALSE);
                         validityResult.setVerificationDetails(verificationDetails);
                         validityResults.add(validityResult);
                     }
@@ -203,7 +200,7 @@ public class XAdESVerification {
                     tsaX509CertList = Crypto.sortX509Chain(tsaX509CertList);
                 } catch (Exception e) {
                     LOG.error("Error while sorting X509 certificate chain. Details: " + Utils.printStackTrace(e));
-                    verificationDetails.setIntegrity(Boolean.valueOf(false));
+                    verificationDetails.setIntegrity(Boolean.FALSE);
                     validityResult.setVerificationDetails(verificationDetails);
                     validityResults.add(validityResult);
                 }
@@ -220,8 +217,8 @@ public class XAdESVerification {
                     LOG.error("Failed to verify timestamp signature. Details: " + Utils.printStackTrace(e));
                 }
 
-                tsaCertPathValidation = certPathValidation1.validate(tsaX509CertList);
-                tsaTrustedCertificate = trustedCertificateChecks.validate(tsaX509CertList).isValid();
+                tsaCertPathValidation = new CertPathValidation().validate(tsaX509CertList);
+                tsaTrustedCertificate = new TrustedCertificateChecks().validate(tsaX509CertList).isValid();
                 RevocationChecks tsaRevocationChecks = (new RevocationStatusChecks(this.lang, this.entityBillCode, null, null, Boolean.valueOf(true), this.acceptableCrlDuration)).validate(tsaX509CertList.get(0), signingTime);
                 finalResult = tsaCertPathValidation && tsaTrustedCertificate && tsaRevocationChecks.isSuccess();
                 tsaChecks.setIntegrity(tsaIntegrity);
@@ -237,11 +234,11 @@ public class XAdESVerification {
                         signingTime = Utils.convertToUTC(signingTime);
                     } catch (ParseException ex) {
                         LOG.error("Cannot convert signing time to UTC");
-                        return new VerificationInternalResponse(5001);
+                        return new VerificationInternalResponse(2003);
                     }
             }
-            boolean certPathValidation = certPathValidation1.validate(x509CertList);
-            Result trustedCheckResult = trustedCertificateChecks.validate(x509CertList);
+            boolean certPathValidation = new CertPathValidation().validate(x509CertList);
+            Result trustedCheckResult = new TrustedCertificateChecks().validate(x509CertList);
             boolean trustedCertificate = trustedCheckResult.isValid();
             RevocationChecks revocationChecks = (new RevocationStatusChecks(this.lang, this.entityBillCode, null, null, Boolean.valueOf(true), this.acceptableCrlDuration)).validate(x509CertList.get(0), signingTime);
             ValidityChecks validityChecks = (new ValidityStatusChecks(this.lang)).validate(x509CertList.get(0), signingTime);
@@ -251,10 +248,10 @@ public class XAdESVerification {
                 registeredChecks = Boolean.FALSE;
             }
             if (!Utils.isNullOrEmpty(this.serialNumber))
-                registeredChecks = Boolean.valueOf((this.serialNumber.compareToIgnoreCase(DatatypeConverter.printHexBinary(((X509Certificate)x509CertList.get(0)).getSerialNumber().toByteArray())) == 0));
-            verificationDetails.setIntegrity(Boolean.valueOf(integrity));
-            verificationDetails.setCertPathValidation(Boolean.valueOf(certPathValidation));
-            verificationDetails.setTrustedCertificate(Boolean.valueOf(trustedCertificate));
+                registeredChecks = this.serialNumber.compareToIgnoreCase(DatatypeConverter.printHexBinary(((X509Certificate) x509CertList.get(0)).getSerialNumber().toByteArray())) == 0;
+            verificationDetails.setIntegrity(integrity);
+            verificationDetails.setCertPathValidation(certPathValidation);
+            verificationDetails.setTrustedCertificate(trustedCertificate);
             verificationDetails.setRegisteredChecks(registeredChecks);
             verificationDetails.setRevocationChecks(revocationChecks);
             verificationDetails.setValidityChecks(validityChecks);
@@ -270,7 +267,7 @@ public class XAdESVerification {
             validityResult.setSigningTime(signingTime);
             if (this.signedDataRequired)
                 validityResult.setSignedData(signedData);
-            validityResult.setSuccess(Boolean.valueOf(finalResult));
+            validityResult.setSuccess(finalResult);
             validityResult.setVerificationDetails(verificationDetails);
             validityResult.setTsa(tsaChecks);
             if (this.signerInformation) {
@@ -296,7 +293,7 @@ public class XAdESVerification {
                 validityResult.setValidFrom(signerCertificate.getNotBefore());
                 validityResult.setValidTo(signerCertificate.getNotAfter());
                 if (x509CertList.size() == 1)
-                    x509CertList = certPathValidation1.buildPath(signerCertificate);
+                    x509CertList = new CertPathValidation().buildPath(signerCertificate);
                 if (x509CertList.size() > 1) {
                     String issuerThumbprint = null;
                     String issuerSerialNumber = null;

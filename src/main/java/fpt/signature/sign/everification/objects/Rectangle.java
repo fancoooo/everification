@@ -3,16 +3,18 @@ package fpt.signature.sign.everification.objects;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.gson.annotations.Expose;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class Rectangle {
+    @Expose
     private float llx;
-
+    @Expose
     private float lly;
-
+    @Expose
     private float urx;
-
+    @Expose
     private float ury;
 
     public Rectangle(float llx, float lly, float urx, float ury) {

@@ -5,12 +5,14 @@ import java.security.cert.X509Certificate;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 import fpt.signature.sign.everification.objects.CAProperties;
 import fpt.signature.sign.everification.objects.CertificationAuthority;
 import fpt.signature.sign.everification.objects.CrlData;
 import fpt.signature.sign.everification.objects.Endpoint;
 import fpt.signature.sign.general.Resources;
+import fpt.signature.sign.security.ApplicationContextProvider;
 import fpt.signature.sign.utils.CertificatePolicy;
 import fpt.signature.sign.utils.Crypto;
 import fpt.signature.sign.utils.Utils;
@@ -62,6 +64,7 @@ public class CrlValidator {
     }
 
     private static ValidationResp downloadCrl(X509Certificate x509Certificate) {
+        Resources resources = ApplicationContextProvider.getApplicationContext().getBean(Resources.class);
         if (Crypto.isRootCACertificate(x509Certificate)) {
                 LOG.debug("CA " + x509Certificate.getIssuerDN().toString() + " is ROOTCA. No CRL downloaded");
             return new ValidationResp(5001);
@@ -81,7 +84,7 @@ public class CrlValidator {
                 }
             }
             if (certificationAuthority == null) {
-                Resources.reloadCertificationAuthorities();
+                resources.reloadCertificationAuthorities();
                 listOfCertificationAuthority = Resources.getListOfCertificationAuthority();
                 for (CertificationAuthority ca : listOfCertificationAuthority) {
                     if (ca.getCommonName().compareTo(CertificatePolicy.getCommonName(x509Certificate.getIssuerDN().toString())) == 0) {
@@ -97,7 +100,7 @@ public class CrlValidator {
         } else {
             certificationAuthority = (CertificationAuthority)Resources.getCertificationAuthoritiesKeyIdentifiers().get(issuerKeyIdentifier);
             if (certificationAuthority == null) {
-                Resources.reloadCertificationAuthorities();
+                resources.reloadCertificationAuthorities();
                 certificationAuthority = (CertificationAuthority)Resources.getCertificationAuthoritiesKeyIdentifiers().get(issuerKeyIdentifier);
             }
         }
@@ -111,31 +114,23 @@ public class CrlValidator {
             LOG.error("CAProperties is NULL. Cannot download CRL");
             return new ValidationResp(5001);
         }
-        Endpoint endpoint = caProperties.getCrl().getEndpoint();
-        if (endpoint.getType().equals("P2P")) {
-            LOG.debug("Call CRL using EP_TYPE_P2P");
-            if (true) {
-                CrlInvocation crlInvocation = new CrlInvocation();
-                List<String> crlDists = Crypto.getCRLDistributionPoints(x509Certificate);
-                if (Utils.isNullOrEmpty(crlDists.get(0))) {
-                        LOG.debug("No CRL URL found in certificate " + x509Certificate.getSubjectDN().toString() + ". This certificate could be RootCA");
-                    return new ValidationResp(5001);
-                }
-                ValidationReq validationReq = new ValidationReq();
-                validationReq.setEntityName("VERIFICATION_ENTITY");
-                validationReq.setCrlUris(crlDists);
-                validationReq.setRetry(caProperties.getCrl().getRetry());
-                ValidationResp validationResp = crlInvocation.call(validationReq);
-                return validationResp;
-            }
-                LOG.error("Cannot check ocsp due to Invalid P2P Credentials");
+        CrlInvocation crlInvocation = new CrlInvocation();
+        List<String> crlDists = Crypto.getCRLDistributionPoints(x509Certificate);
+        if (Utils.isNullOrEmpty(crlDists.get(0))) {
+                LOG.debug("No CRL URL found in certificate " + x509Certificate.getSubjectDN().toString() + ". This certificate could be RootCA");
             return new ValidationResp(5001);
         }
-        throw new NotImplementedException("Endpoint call hasn't implemented yet");
+        ValidationReq validationReq = new ValidationReq();
+        validationReq.setEntityName("VERIFICATION_ENTITY");
+        validationReq.setCrlUris(crlDists);
+        validationReq.setRetry(caProperties.getCrl().getRetry());
+        ValidationResp validationResp = crlInvocation.call(validationReq);
+        return validationResp;
     }
 
     public CRLInnerResult getX509CRL(X509Certificate x509Certificate) {
         //DatabaseImpl databaseImpl = new DatabaseImpl();
+        Resources resources = ApplicationContextProvider.getApplicationContext().getBean(Resources.class);
         X509CRL x509crl = null;
         byte[] crlByte = null;
         String cnOfSubjectDn = CertificatePolicy.getCommonName(x509Certificate.getSubjectDN().toString());
@@ -149,7 +144,7 @@ public class CrlValidator {
         if (Utils.isNullOrEmpty(issuerKeyIdentifier)) {
             List<CertificationAuthority> listOfCertificationAuthority = Resources.getListOfCertificationAuthority();
             for (CertificationAuthority ca : listOfCertificationAuthority) {
-                if (ca.getCommonName().compareTo(CertificatePolicy.getCommonName(x509Certificate.getIssuerDN().toString())) == 0) {
+                if (ca.getCommonName().compareTo(Objects.requireNonNull(CertificatePolicy.getCommonName(x509Certificate.getIssuerDN().toString()))) == 0) {
                     X509Certificate x509OfCA = Crypto.getX509Object(ca.getPemCertificate());
                     try {
                         x509Certificate.verify(x509OfCA.getPublicKey());
@@ -159,10 +154,10 @@ public class CrlValidator {
                 }
             }
             if (certificationAuthority == null) {
-                Resources.reloadCertificationAuthorities();
+                resources.reloadCertificationAuthorities();
                 listOfCertificationAuthority = Resources.getListOfCertificationAuthority();
                 for (CertificationAuthority ca : listOfCertificationAuthority) {
-                    if (ca.getCommonName().compareTo(CertificatePolicy.getCommonName(x509Certificate.getIssuerDN().toString())) == 0) {
+                    if (ca.getCommonName().compareTo(Objects.requireNonNull(CertificatePolicy.getCommonName(x509Certificate.getIssuerDN().toString()))) == 0) {
                         X509Certificate x509OfCA = Crypto.getX509Object(ca.getPemCertificate());
                         try {
                             x509Certificate.verify(x509OfCA.getPublicKey());
@@ -175,7 +170,7 @@ public class CrlValidator {
         } else {
             certificationAuthority = (CertificationAuthority)Resources.getCertificationAuthoritiesKeyIdentifiers().get(issuerKeyIdentifier);
             if (certificationAuthority == null) {
-                Resources.reloadCertificationAuthorities();
+                resources.reloadCertificationAuthorities();
                 certificationAuthority = (CertificationAuthority)Resources.getCertificationAuthoritiesKeyIdentifiers().get(issuerKeyIdentifier);
             }
         }
@@ -187,7 +182,7 @@ public class CrlValidator {
 
         CrlData crlData = null;
         if (crlData == null) {
-                LOG.error("Cannot find CRL Data of CA " + x509Certificate.getSubjectDN().toString() + " in system. Try downloading");
+            LOG.error("Cannot find CRL Data of CA " + x509Certificate.getSubjectDN().toString() + " in system. Try downloading");
             ValidationResp validationResp = downloadCrl(x509Certificate);
             if (validationResp.getResponseCode() == 0) {
                 crlByte = validationResp.getCrlResponseData();

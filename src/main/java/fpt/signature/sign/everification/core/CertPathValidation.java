@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import fpt.signature.sign.general.Resources;
+import fpt.signature.sign.security.ApplicationContextProvider;
 import org.apache.log4j.Logger;
 import fpt.signature.sign.everification.objects.CertificationAuthority;
 import fpt.signature.sign.utils.CertificatePolicy;
@@ -17,6 +18,7 @@ public class CertPathValidation {
     private static final Logger LOG = Logger.getLogger(fpt.signature.sign.everification.core.CertPathValidation.class);
 
     public List<X509Certificate> buildPath(X509Certificate x509) {
+        Resources resources = ApplicationContextProvider.getApplicationContext().getBean(Resources.class);
         List<X509Certificate> certPath = new ArrayList<>();
         String issuerKeyIdentifier = Crypto.getIssuerKeyIdentifier(x509);
         String subjectKeyIdentitider = Crypto.getSubjectKeyIdentifier(x509);
@@ -25,7 +27,7 @@ public class CertPathValidation {
                 .compareToIgnoreCase(subjectKeyIdentitider) != 0) {
             CertificationAuthority certificationAuthority = (CertificationAuthority) Resources.getCertificationAuthoritiesKeyIdentifiers().get(issuerKeyIdentifier);
             if (certificationAuthority == null) {
-                Resources.reloadCertificationAuthorities();
+                resources.reloadCertificationAuthorities();
                 certificationAuthority = (CertificationAuthority)Resources.getCertificationAuthoritiesKeyIdentifiers().get(issuerKeyIdentifier);
             }
             if (certificationAuthority == null)
@@ -88,13 +90,11 @@ public class CertPathValidation {
 
     public boolean validate(List<X509Certificate> chain) {
         if (chain == null) {
-
-                LOG.error("Signature has no chain --> Cert Path Validation result false");
+            LOG.error("Signature has no chain --> Cert Path Validation result false");
             return false;
         }
         if (chain.size() == 1) {
-
-                LOG.error("Signature has only siging certificate. Signer: " + CertificatePolicy.getCommonName(((X509Certificate)chain.get(0)).getSubjectDN().toString()));
+            LOG.error("Signature has only siging certificate. Signer: " + CertificatePolicy.getCommonName(((X509Certificate)chain.get(0)).getSubjectDN().toString()));
             return true;
         }
         for (int i = 0; i < chain.size(); i++) {
@@ -107,7 +107,7 @@ public class CertPathValidation {
         }
         return true;
     }
-
+    // kiểm tra xem cert1 có phải được cert2 cấp phát ra hay không
     private boolean validate(X509Certificate cert1, X509Certificate cert2) {
         boolean rs = false;
         if (cert2 != null) {
@@ -120,8 +120,7 @@ public class CertPathValidation {
         } else {
             rs = true;
         }
-
-            LOG.debug("Checking Certificate CertPath\n\tCERT1: " + cert1.getSubjectDN().toString() + "\n\tCERT2: " + cert2
+        LOG.debug("Checking Certificate CertPath\n\tCERT1: " + cert1.getSubjectDN().toString() + "\n\tCERT2: " + cert2
                     .getSubjectDN().toString() + "--> " + rs);
         return rs;
     }

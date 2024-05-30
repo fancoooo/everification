@@ -6,6 +6,7 @@ import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 import fpt.signature.sign.everification.core.TrustedCertificateChecks;
 import fpt.signature.sign.everification.objects.CAProperties;
@@ -13,6 +14,7 @@ import fpt.signature.sign.everification.objects.CertificationAuthority;
 import fpt.signature.sign.everification.objects.Endpoint;
 import fpt.signature.sign.everification.objects.Result;
 import fpt.signature.sign.general.Resources;
+import fpt.signature.sign.security.ApplicationContextProvider;
 import fpt.signature.sign.utils.CertificatePolicy;
 import fpt.signature.sign.utils.Crypto;
 import fpt.signature.sign.utils.Utils;
@@ -48,24 +50,23 @@ public class OcspValidator {
     }
 
     public ValidationResp check(X509Certificate issuerCert, X509Certificate cert) {
+        Resources resources = ApplicationContextProvider.getApplicationContext().getBean(Resources.class);
         if (Crypto.isRootCACertificate(cert)) {
-                LOG.debug("No check revocation status for RootCA (" + CertificatePolicy.getCommonName(cert.getSubjectDN().toString()) + ") certificate");
+            LOG.debug("No check revocation status for RootCA (" + CertificatePolicy.getCommonName(cert.getSubjectDN().toString()) + ") certificate");
             return new ValidationResp(0, 0, null);
         }
         String commonNameOfCheckCert = CertificatePolicy.getCommonName(cert.getSubjectDN().toString());
         if (issuerCert.equals(cert)) {
-
-                LOG.debug("No check revocation status for selfsign (RootCA) (" + CertificatePolicy.getCommonName(cert.getSubjectDN().toString()) + ") certificate");
+            LOG.debug("No check revocation status for selfsign (RootCA) (" + CertificatePolicy.getCommonName(cert.getSubjectDN().toString()) + ") certificate");
             return new ValidationResp(0, 0, null);
         }
         String issuerKeyIdentifier = Crypto.getIssuerKeyIdentifier(cert);
         CertificationAuthority certificationAuthority = null;
         if (Utils.isNullOrEmpty(issuerKeyIdentifier)) {
-
-                LOG.warn("issuerKeyIdentifier of certificate " + CertificatePolicy.getCommonName(cert.getSubjectDN().toString() + " is NULL"));
+            LOG.warn("issuerKeyIdentifier of certificate " + CertificatePolicy.getCommonName(cert.getSubjectDN().toString() + " is NULL"));
             List<CertificationAuthority> listOfCertificationAuthority = Resources.getListOfCertificationAuthority();
             for (CertificationAuthority ca : listOfCertificationAuthority) {
-                if (ca.getCommonName().compareTo(CertificatePolicy.getCommonName(cert.getIssuerDN().toString())) == 0) {
+                if (ca.getCommonName().compareTo(Objects.requireNonNull(CertificatePolicy.getCommonName(cert.getIssuerDN().toString()))) == 0) {
                     X509Certificate x509OfCA = Crypto.getX509Object(ca.getPemCertificate());
                     try {
                         cert.verify(x509OfCA.getPublicKey());
@@ -75,10 +76,10 @@ public class OcspValidator {
                 }
             }
             if (certificationAuthority == null) {
-                Resources.reloadCertificationAuthorities();
+                resources.reloadCertificationAuthorities();
                 listOfCertificationAuthority = Resources.getListOfCertificationAuthority();
                 for (CertificationAuthority ca : listOfCertificationAuthority) {
-                    if (ca.getCommonName().compareTo(CertificatePolicy.getCommonName(cert.getIssuerDN().toString())) == 0) {
+                    if (ca.getCommonName().compareTo(Objects.requireNonNull(CertificatePolicy.getCommonName(cert.getIssuerDN().toString()))) == 0) {
                         X509Certificate x509OfCA = Crypto.getX509Object(ca.getPemCertificate());
                         try {
                             cert.verify(x509OfCA.getPublicKey());
@@ -91,7 +92,7 @@ public class OcspValidator {
         } else {
             certificationAuthority = (CertificationAuthority)Resources.getCertificationAuthoritiesKeyIdentifiers().get(issuerKeyIdentifier);
             if (certificationAuthority == null) {
-                Resources.reloadCertificationAuthorities();
+                resources.reloadCertificationAuthorities();
                 certificationAuthority = (CertificationAuthority)Resources.getCertificationAuthoritiesKeyIdentifiers().get(issuerKeyIdentifier);
             }
         }
@@ -106,7 +107,9 @@ public class OcspValidator {
         }
         OCSPResp ocspResponse = null;
         try {
+            // lấy đường dẫn ocsp từ cert
             List<String> ocspUris = Crypto.getOcspUris(cert);
+            assert ocspUris != null;
             if (Utils.isNullOrEmpty(ocspUris.get(0))) {
                 LOG.debug("No OCSP URL found in certificate " + cert.getSubjectDN().toString() + ". This certificate could be SubCA");
                 return new ValidationResp(5001);
@@ -183,7 +186,7 @@ public class OcspValidator {
                     LOG.error("Error while checking ocsp status. Details: " + Utils.printStackTrace(e));
                     return new ValidationResp(5001);
                 }
-                LOG.error("Error while checking ocsp status due to no ocsp response");
+            LOG.error("Error while checking ocsp status due to no ocsp response");
             return new ValidationResp(5001);
         } catch (Exception e) {
             LOG.error("Error while checking ocsp status. Details: " + Utils.printStackTrace(e));

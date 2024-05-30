@@ -10,7 +10,7 @@ public class VerificationPropertiesJSNObject {
     private Boolean checkOcsp;
     private Boolean checkCrl;
     private int retry;
-    private boolean showAnntations;
+    private boolean showAnnotations;
     private boolean showSignatureError;
     private boolean showSignatureDelete;
 
@@ -30,12 +30,12 @@ public class VerificationPropertiesJSNObject {
         this.showSignatureDelete = showSignatureDelete;
     }
 
-    public boolean isShowAnntations() {
-        return showAnntations;
+    public boolean isShowAnnotations() {
+        return showAnnotations;
     }
 
-    public void setShowAnntations(boolean showAnntations) {
-        this.showAnntations = showAnntations;
+    public void setShowAnnotations(boolean showAnnotations) {
+        this.showAnnotations = showAnnotations;
     }
 
     public int getRetry() {
